@@ -38,7 +38,7 @@ server <- function(input, output){
   
   output$diamond_plot2 <- renderPlot({
     ggplot(data = diamond_clarity(), aes(x = clarity, y = price)) +
-      geom_violin(aes(fill = clarity))
+      geom_violin(aes(fill = clarity), alpha = 0.5)
   })
 }
 
