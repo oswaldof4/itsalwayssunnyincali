@@ -4,7 +4,7 @@ library(shiny)
 library(tidyverse)
 library(shinythemes)
 
-ui <- navbarPage("Waldo's naviagation bar!",
+ui <- navbarPage("Julia's naviagation bar!",
                  theme = shinytheme("cyborg"),
                  tabPanel("First tab!",
                           
