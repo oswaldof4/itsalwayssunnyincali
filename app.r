@@ -28,7 +28,8 @@ server <- function(input, output){
   
   output$diamond_plot <- renderPlot({
     ggplot(data = diamonds, aes(x = carat, y = price)) +
-      geom_point(aes(color = clarity)) 
+      geom_point(aes(color = clarity)) +
+      theme_minimal()
   })
   
   diamond_clarity <- reactive({
