@@ -9,7 +9,7 @@ ui <- navbarPage("Waldo's naviagation bar!",
                  tabPanel("First tab!",
                           
                           h1("Some giant text - something new from Julia"),
-                          p("Here's some regular text...what's up it's david"), 
+                          p("Here's some regular text... something new from david"), 
 
                           plotOutput(outputId = "diamond_plot")),
                  tabPanel("Second tab!",
