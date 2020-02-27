@@ -7,7 +7,7 @@ library(shinythemes)
 ui <- navbarPage("Waldo's naviagation bar!",
                  theme = shinytheme("cyborg"),
                  tabPanel("First tab!",
-                          h1("Some giant text"),
+                          h1("Some giant text - HI! It's Julia."),
                           p("Here's some regular text..."),
                           plotOutput(outputId = "diamond_plot")),
                  tabPanel("Second tab!",
