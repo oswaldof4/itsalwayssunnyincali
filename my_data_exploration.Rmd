@@ -37,7 +37,7 @@ env_scrn_sf <- st_as_sf(env_scrn_df, coords = c("lon", "lat"), crs = 4326)
 env_scrn_sub <- env_scrn_sf %>%
   group_by(nearby_city) %>% 
   summarize(total_pop = sum(total_population),
-            ozone = sum(ozone)) %>% 
+            ozone = mean(ozone)) %>% 
   arrange(-total_pop) %>% 
   head(10)
 
@@ -58,7 +58,7 @@ ozone_plot <- ggplot() +
                check_overlap = T) +
   theme_minimal()
 
-#ozone_plot
+ozone_plot
 
 pop_plot <- ggplot() +
   geom_sf(data = ca) +
@@ -169,7 +169,7 @@ ggplot(data = elec_ca_sub3) +
                                 2006, 2010, 2014, 2018), 
                      labels = c(1990, 1994, 1998, 2002, 
                                 2006, 2010, 2014, 2018)) +
-  labs(title = "Net energy generation", 
+  labs(title = "Net energy demand", 
        y = "Electricity [GWh]", x = "Year") +
   theme_minimal()
 ```
