@@ -1,0 +1,27 @@
+---
+title: "my_data_exploration"
+author: "Oswaldo Felix"
+date: "3/1/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
+
+library(tidyverse)
+library(janitor)
+library(here)
+```
+
+This is just me checking out the data
+
+### Here's EnviroScreen
+```{r}
+env_scrn_df <- read_csv(here("data", "CalEnviroScreen.csv")) %>% 
+  clean_names() %>% 
+  rename(nearby_city = nearby_city_to_help_approximate_location_only,
+         lon = longitude,
+         lat = latitude) %>% 
+  select(-contains("pctl"), -contains("percentile"))
+```
+
