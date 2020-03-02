@@ -36,9 +36,9 @@ env_scrn_sf <- st_as_sf(env_scrn_df, coords = c("lon", "lat"), crs = 4326)
 # Make subset
 env_scrn_sub <- env_scrn_sf %>%
   group_by(nearby_city) %>% 
-  summarize(total_population = sum(total_population),
+  summarize(total_pop = sum(total_population),
             ozone = sum(ozone)) %>% 
-  arrange(-total_population) %>% 
+  arrange(-total_pop) %>% 
   head(10)
 
 # Make California base layer
@@ -84,40 +84,93 @@ elec_raw <- read_csv(here::here("data", "ElectricityByCountyCal.csv"))
 elec_res_df <- read_csv(here::here("data", "ElectricityByCountyCal.csv")) %>%
   filter(Sector == "Residential") %>% 
   select(-Sector, -"Total Usage") %>% 
-  pivot_longer(-County, names_to = "year", values_to = "generation") %>% 
+  pivot_longer(-County, names_to = "year", values_to = "demand") %>% 
   clean_names() %>% 
   mutate(sector = "Residential")
 
 elec_nres_df <- read_csv(here::here("data", "ElectricityByCountyCal.csv")) %>%
   filter(Sector == "Non-Residential") %>% 
   select(-Sector, -"Total Usage") %>% 
-  pivot_longer(-County, names_to = "year", values_to = "generation") %>% 
+  pivot_longer(-County, names_to = "year", values_to = "demand") %>% 
   clean_names() %>% 
   mutate(sector = "Non-Residential")
 
 elec_tot_df <- read_csv(here::here("data", "ElectricityByCountyCal.csv")) %>%
   filter(Sector == "Total") %>% 
   select(-Sector, -"Total Usage") %>% 
-  pivot_longer(-County, names_to = "year", values_to = "generation") %>% 
+  pivot_longer(-County, names_to = "year", values_to = "demand") %>% 
   clean_names() %>% 
   mutate(sector = "Total")
 
 elec_mid_df <- full_join(elec_nres_df, elec_res_df)
 
 elec_df <- full_join(elec_mid_df, elec_tot_df) %>%
-  mutate(year = as.numeric(year)) %>% 
+  mutate(year = as.numeric(year),
+         county = str_to_title(county)) %>% 
   arrange(county) %>% 
   arrange(-year)
 
 # Let's try to combine with spatial data
 
+sp_sf <- env_scrn_sf %>%
+  group_by(county) %>% 
+  summarize(total_pop = sum(total_population),
+            ozone = sum(ozone)) %>%
+  select(county, total_pop, ozone)
 
+elec_ca_sf <- sp_sf %>% 
+  full_join(elec_df, by = "county")
 ```
 
 ```{r}
 # Plotting
 
+elec_ca_sub1 <- elec_ca_sf %>% 
+  filter(year %in% c(1990, 2018)) %>% 
+  filter(sector == "Residential")
 
+ggplot() +
+  geom_sf(data = ca) +
+  geom_sf(data = elec_ca_sub1, 
+          aes(color = demand)) +
+  scale_color_gradientn(colors = c("blue", "lightyellow", "red")) +
+  theme_minimal() +
+  facet_wrap(~year) +
+  labs(title = "Residential energy demand")
 
+elec_ca_sub2 <- elec_ca_sf %>% 
+  filter(year %in% c(1990, 2018)) %>% 
+  filter(sector == "Non-Residential")
+
+ggplot() +
+  geom_sf(data = ca) +
+  geom_sf(data = elec_ca_sub2, 
+          aes(color = demand)) +
+  scale_color_gradientn(colors = c("blue", "lightyellow", "red")) +
+  theme_minimal() +
+  facet_wrap(~year) +
+  labs(title = "Non-Residential energy demand")
+```
+ 
+```{r, fig.width = 10, fig.height = 6}
+# More plotting
+elec_ca_sub3 <- elec_ca_sf %>% 
+  filter(sector == "Total") %>% 
+  group_by(year) %>% 
+  summarize(demand = sum(demand))
+
+ggplot(data = elec_ca_sub3) +
+  geom_line(aes(x = year, y = demand)) +
+  geom_ribbon(fill = "lightyellow", alpha = 0.5,
+              aes(x = year, ymin = 200000, 
+                  ymax = demand)) +
+  scale_y_continuous(limits = c(200000,300000)) +
+  scale_x_continuous(breaks = c(1990, 1994, 1998, 2002, 
+                                2006, 2010, 2014, 2018), 
+                     labels = c(1990, 1994, 1998, 2002, 
+                                2006, 2010, 2014, 2018)) +
+  labs(title = "Net energy generation", 
+       y = "Electricity [GWh]", x = "Year") +
+  theme_minimal()
 ```
  
