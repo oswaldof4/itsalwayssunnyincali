@@ -9,19 +9,115 @@ output: html_document
 knitr::opts_chunk$set(echo = F, warning = F, message = F)
 
 library(tidyverse)
+library(lubridate)
 library(janitor)
+library(tmap)
 library(here)
+library(sf)
 ```
 
 This is just me checking out the data
 
 ### Here's EnviroScreen
-```{r}
-env_scrn_df <- read_csv(here("data", "CalEnviroScreen.csv")) %>% 
+```{r, fig.width = 10, fig.height = 6}
+# Read in data set
+env_scrn_df <- read_csv(here::here("data", "CalEnviroScreen.csv")) %>% 
   clean_names() %>% 
   rename(nearby_city = nearby_city_to_help_approximate_location_only,
          lon = longitude,
-         lat = latitude) %>% 
+         lat = latitude,
+         county = california_county) %>% 
   select(-contains("pctl"), -contains("percentile"))
+
+# Convert to sf
+env_scrn_sf <- st_as_sf(env_scrn_df, coords = c("lon", "lat"), crs = 4326)
+
+
+# Make subset
+env_scrn_sub <- env_scrn_sf %>%
+  group_by(nearby_city) %>% 
+  summarize(total_population = sum(total_population),
+            ozone = sum(ozone)) %>% 
+  arrange(-total_population) %>% 
+  head(10)
+
+# Make California base layer
+ca <- read_sf(dsn = here::here("data", "states"),
+              layer = "cb_2017_us_state_20m") %>% 
+  dplyr::select(NAME) %>% 
+  filter(NAME == "California") %>% 
+  st_transform(crs = 4326)
+
+# Let's look at the data
+ozone_plot <- ggplot() +
+  geom_sf(data = ca) +
+  geom_sf(data = env_scrn_sf, aes(color = ozone)) +
+  scale_color_gradientn(colors = c("blue", "yellow")) +
+  geom_sf_text(data = env_scrn_sub, aes(label = nearby_city),
+               size = 3, fontface = "bold", 
+               check_overlap = T) +
+  theme_minimal()
+
+#ozone_plot
+
+pop_plot <- ggplot() +
+  geom_sf(data = ca) +
+  geom_sf(data = env_scrn_sf, 
+          aes(color = ozone, size = total_population, 
+              alpha = total_population)) +
+  scale_color_gradientn(colors = c("blue", "yellow")) +
+  scale_size_continuous(range = c(1,10)) +
+  geom_sf_text(data = env_scrn_sub, aes(label = nearby_city),
+               size = 3, fontface = "bold", 
+               check_overlap = T) +
+  guides(color = guide_colorbar("Ozone"), size = F, alpha = F) +
+  theme_minimal()
+
+pop_plot
 ```
 
+### Here's Electricity
+```{r}
+# This data is messy
+elec_raw <- read_csv(here::here("data", "ElectricityByCountyCal.csv"))
+
+elec_res_df <- read_csv(here::here("data", "ElectricityByCountyCal.csv")) %>%
+  filter(Sector == "Residential") %>% 
+  select(-Sector, -"Total Usage") %>% 
+  pivot_longer(-County, names_to = "year", values_to = "generation") %>% 
+  clean_names() %>% 
+  mutate(sector = "Residential")
+
+elec_nres_df <- read_csv(here::here("data", "ElectricityByCountyCal.csv")) %>%
+  filter(Sector == "Non-Residential") %>% 
+  select(-Sector, -"Total Usage") %>% 
+  pivot_longer(-County, names_to = "year", values_to = "generation") %>% 
+  clean_names() %>% 
+  mutate(sector = "Non-Residential")
+
+elec_tot_df <- read_csv(here::here("data", "ElectricityByCountyCal.csv")) %>%
+  filter(Sector == "Total") %>% 
+  select(-Sector, -"Total Usage") %>% 
+  pivot_longer(-County, names_to = "year", values_to = "generation") %>% 
+  clean_names() %>% 
+  mutate(sector = "Total")
+
+elec_mid_df <- full_join(elec_nres_df, elec_res_df)
+
+elec_df <- full_join(elec_mid_df, elec_tot_df) %>%
+  mutate(year = as.numeric(year)) %>% 
+  arrange(county) %>% 
+  arrange(-year)
+
+# Let's try to combine with spatial data
+
+
+```
+
+```{r}
+# Plotting
+
+
+
+```
+ 
