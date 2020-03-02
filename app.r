@@ -4,15 +4,33 @@ library(shiny)
 library(tidyverse)
 library(shinythemes)
 
-ui <- navbarPage("Julia's awesome naviagation bar!",
+ui <- navbarPage("It's always sunny in California",
                  theme = shinytheme("cyborg"),
-                 tabPanel("First tab!",
-                          
+                 tabPanel("Instructions!",
                           h1("Some giant text - something new from Oswaldo"),
-                          p("Here's some regular text... something new from david"), 
-
+                          p("Here's some regular text... something new from david"),
                           plotOutput(outputId = "diamond_plot")),
+                 tabPanel("First tab!",
+                          sidebarLayout(
+                            sidebarPanel("Some text!",
+                                         checkboxGroupInput(inputId = "diamondclarity",
+                                                            "Choose some!",
+                                                            choices = c(levels(diamonds$clarity)))
+                            ),
+                            mainPanel("Main panel text!",
+                                      plotOutput(outputId = "diamond_plot2"))
+                          )),
                  tabPanel("Second tab!",
+                          sidebarLayout(
+                            sidebarPanel("Some text!",
+                                         checkboxGroupInput(inputId = "diamondclarity",
+                                                            "Choose some!",
+                                                            choices = c(levels(diamonds$clarity)))
+                            ),
+                            mainPanel("Main panel text!",
+                                      plotOutput(outputId = "diamond_plot2"))
+                          )),
+                 tabPanel("Third tab!",
                           sidebarLayout(
                             sidebarPanel("Some text!",
                                          checkboxGroupInput(inputId = "diamondclarity",
