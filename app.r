@@ -4,42 +4,60 @@ library(shiny)
 library(tidyverse)
 library(shinythemes)
 
-ui <- navbarPage("It's always sunny in California",
-                 theme = shinytheme("cyborg"),
+ui <- navbarPage("California solar electricity exploration",
+                 shinythemes::themeSelector(),
                  tabPanel("Instructions!",
-                          h1("Some giant text - something new from Oswaldo"),
-                          p("Here's some regular text... something new from david"),
-                          plotOutput(outputId = "diamond_plot")),
-                 tabPanel("First tab!",
+                          h1("It's always sunny in California"),
+                          p("Here's where we would write about what the app is, what it does, and how to use it."),
+                          plotOutput(outputId = "diamond_plot")
+                          ),
+                 tabPanel("Timelapse map of solar capacity by county",
+                          h2("Map of solar capacity by county"),
+                          p("Solar capacity by county indicated by shading for the
+                            selected time span. Darker shaded counties indicate more
+                            solar capacity. Hover cursor over county to view exact capacity."),
+                          sidebarLayout(
+                            sidebarPanel("Select year",
+                                          sliderInput(inputId = "placeholder1",
+                                                      "(range of years)",
+                                                      min = min(diamonds$carat),
+                                                      max = max(diamonds$carat),
+                                                      value = 1
+                                                      )
+                                         ),
+                            mainPanel("Main panel text!",
+                                      plotOutput(outputId = "temp_plot")
+                                      ) 
+                            )
+                          ),
+                 tabPanel("Electricity use by county",
+                          h2("Selected county name electricity and solar statistics"),
+                          p("Total county electricity usage and solar generation"),
                           sidebarLayout(
                             sidebarPanel("Some text!",
                                          checkboxGroupInput(inputId = "diamondclarity",
                                                             "Choose some!",
                                                             choices = c(levels(diamonds$clarity)))
-                            ),
+                                         ),
                             mainPanel("Main panel text!",
-                                      plotOutput(outputId = "diamond_plot2"))
-                          )),
-                 tabPanel("Second tab!",
+                                      plotOutput(outputId = "diamond_plot2")
+                                      ) # Can't seem to figure out why this plot isn't showing up
+                            )
+                          ),
+                 tabPanel("Low income solar",
+                          h2("Low income solar participation by county"),
                           sidebarLayout(
                             sidebarPanel("Some text!",
-                                         checkboxGroupInput(inputId = "diamondclarity",
+                                         checkboxGroupInput(inputId = "placeholder2",
                                                             "Choose some!",
-                                                            choices = c(levels(diamonds$clarity)))
-                            ),
+                                                            choices = c(levels(diamonds$clarity))
+                                                            )
+                                         ),
                             mainPanel("Main panel text!",
-                                      plotOutput(outputId = "diamond_plot2"))
-                          )),
-                 tabPanel("Third tab!",
-                          sidebarLayout(
-                            sidebarPanel("Some text!",
-                                         checkboxGroupInput(inputId = "diamondclarity",
-                                                            "Choose some!",
-                                                            choices = c(levels(diamonds$clarity)))
-                            ),
-                            mainPanel("Main panel text!",
-                                      plotOutput(outputId = "diamond_plot2"))
-                          ))
+                                      plotOutput(outputId = "temp_plot2")
+                                      )
+                            )
+                          )
 )
 
 server <- function(input, output){
