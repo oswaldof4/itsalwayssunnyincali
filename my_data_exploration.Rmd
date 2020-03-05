@@ -186,7 +186,8 @@ gen_by_plant <- read_csv(here::here("data", "annual_generation_by_power_plant.cs
 plant_info <- read_csv(here::here("data", "plant_info.csv"), 
                        skip = 12, col_names = TRUE)
 
-metadata_df <- read_csv(here::here("data", "plant_metadata.csv"))
+metadata_df <- read_csv(here::here("data", "plant_metadata.csv")) %>% 
+  filter(PrimeMoverDesc == "Photovoltaic")
 
 # --------
 # Clean up data
@@ -214,7 +215,8 @@ tidy_plant_info <- plant_info %>%
 # ---------
 
 plants_location_join <- inner_join(tidy_plant_info, tidy_gen_by_plant, "cec_plant_id")
-# note that there are a 19 entries wiht energy_source_category not equal to "SUN" but prime_mover_id equal to "PV"
+# note that there are a 19 entries with energy_source_category not equal to "SUN" but prime_mover_id equal to "PV"
+# The net MWh is key - incorporates energy source differences
 
 ```
 
