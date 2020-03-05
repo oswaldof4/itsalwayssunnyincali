@@ -109,8 +109,7 @@ ggplotly(solar_capacity_plot)
 
 # To dos:
 # Figure out how to arrange yearly capacity by the capacity of plant_name
-# Fix plotly hover text issue
-# For whatever reason, names of plants are ordered in alphabetical order
+# Fix plotly hover text issue # For whatever reason, names of plants are ordered in alphabetical order
 # Adjust plotly hover text to look nicer
 
 ```
