@@ -77,6 +77,17 @@ server <- function(input, output){
     ggplot(data = diamond_clarity(), aes(x = clarity, y = price)) +
       geom_violin(aes(fill = clarity), alpha = 0.5)
   })
+  
+  output$temp_plot <- renderPlot({
+    ggplot(data = diamonds, aes(x = carat, y = price)) +
+      geom_point(aes(color = clarity)) +
+      theme_minimal()
+  })
+  
+  # diamond_clarity <- reactive({
+  #   diamonds %>% 
+  #     filter(clarity %in% input$placeholder1)
+  # })
 }
 
 shinyApp(ui = ui, server = server)
