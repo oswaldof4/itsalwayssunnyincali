@@ -127,6 +127,9 @@ plant_county_sf <- st_as_sf(plant_county_join)
 # Instead just use plant_county_sf
 
 # Make map of CA with plants per county
+# widget will be filter by year
+# put reactive df in what waldo commented out
+# temp_plot and placeholder
 # Could try to do this using solar capacity in MW per county??
 ggplot() +
   geom_sf(data = plant_county_sf, 
