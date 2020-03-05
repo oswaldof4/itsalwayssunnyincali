@@ -58,50 +58,63 @@ tidy_plant_info <- plant_info %>%
 # Join dataframes
 # ---------
 
-plants_location_join <- inner_join(tidy_plant_info, tidy_gen_by_plant, "cec_plant_id")
+plants_location_join <- inner_join(tidy_plant_info, 
+                                   tidy_gen_by_plant, 
+                                   "cec_plant_id")
 # note that there are a 19 entries wiht energy_source_category not equal to "SUN" but prime_mover_id equal to "PV"
 
 ```
+Some entries have primary energy source as natural gas or biogas, which we're assuming is the energy input needed to run the plant. The ones with SUN as primary energy source have slight losses between gross mwh and net mwh. We'll use net mwh to measure capacity. 
+
+Prime Mover ID = The type of engine or turbine that is the source of power for driving the generator
+Primary Energy Source = Primary fuel type used by the generating unit. 
 
 ### Get spatial data
 
 ```{r}
-# Make California base layer
-ca <- read_sf(dsn = here::here("data", "states"),
-              layer = "cb_2017_us_state_20m") %>% 
-  dplyr::select(NAME) %>% 
-  filter(NAME == "California") %>% 
-  st_transform(crs = 4326)
 
 # Read in CA counties
 ca_counties <- read_sf(dsn = here::here("data", "ca_counties"), 
                        layer = "california_county_shape_file") %>% 
-  rename(county = "NAME")
+  rename(county = "NAME") %>% 
+  select(county) %>% 
+  group_by(county) %>% 
+  summarize()
+
+# Get number of plants per county from plants_location_join
+
+plants_per_county <- plants_location_join %>% 
+  group_by(county) %>% 
+  tally()
+# tally counts number of plants in each county
 
 # Join plant information to CA counties and make sf object with sticky geometries
-plant_county_join <- full_join(plants_location_join, ca_counties, "county")
+plant_county_join <- full_join(plants_per_county, ca_counties, "county")
 plant_county_sf <- st_as_sf(plant_county_join)
-# Why does the new file have 5500 observations when it was something that started with 4100 joined to 78?????????????!!!!!!
 
+
+```
+
+```{r}
 # -------------------------------------
 # I don't actually think it makes sense to join cities from cal enviroscreen:
-
-# Use nearby cities from Cal Enviro-screen data to join with plants
-# Read in data set
-env_scrn_df <- read_csv(here::here("data", "CalEnviroScreen.csv")) %>% 
-  clean_names() %>% 
-  rename(nearby_city = nearby_city_to_help_approximate_location_only,
-         lon = longitude,
-         lat = latitude,
-         county = california_county) %>% 
-  select(-contains("pctl"), -contains("percentile"))
-
-# Convert to sf
-env_scrn_sf <- st_as_sf(env_scrn_df, coords = c("lon", "lat"), crs = 4326) %>% 
-  rename(city = "nearby_city")
-
-# Try joining plant cities with cal enviro-screen nearby cities
-plant_city_join <- full_join(plants_location_join, env_scrn_sf, "city")
+# 
+# # Use nearby cities from Cal Enviro-screen data to join with plants
+# # Read in data set
+# env_scrn_df <- read_csv(here::here("data", "CalEnviroScreen.csv")) %>% 
+#   clean_names() %>% 
+#   rename(nearby_city = nearby_city_to_help_approximate_location_only,
+#          lon = longitude,
+#          lat = latitude,
+#          county = california_county) %>% 
+#   select(-contains("pctl"), -contains("percentile"))
+# 
+# # Convert to sf
+# env_scrn_sf <- st_as_sf(env_scrn_df, coords = c("lon", "lat"), crs = 4326) %>% 
+#   rename(city = "nearby_city")
+# 
+# # Try joining plant cities with cal enviro-screen nearby cities
+# plant_city_join <- full_join(plants_location_join, env_scrn_sf, "city")
 
 ```
 
@@ -113,14 +126,10 @@ plant_city_join <- full_join(plants_location_join, env_scrn_sf, "city")
 
 # Instead just use plant_county_sf
 
-plants_per_county <- plant_county_sf %>% 
-  group_by(county) %>% 
-  tally()
-# tally counts number of plants in each county
-
-# Make map of CA with dams per county
+# Make map of CA with plants per county
+# Could try to do this using solar capacity in MW per county??
 ggplot() +
-  geom_sf(data = plants_per_county, 
+  geom_sf(data = plant_county_sf, 
           aes(fill = n), 
           size = 0.2, 
           color = "white") +
