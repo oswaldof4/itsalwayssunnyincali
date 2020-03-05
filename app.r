@@ -8,8 +8,9 @@ ui <- navbarPage("It's always sunny in California",
                  theme = shinytheme("cyborg"),
                  tabPanel("Instructions!",
                           h1("Some giant text - something new from Oswaldo"),
-                          p("Here's some regular text... something new from david"),
-                          plotOutput(outputId = "diamond_plot")),
+                          p("Here's where we would write about what the is, what it does, and how to use it."),
+                          mainPanel("Main panel text!",
+                                    plotOutput(outputId = "diamond_plot"))), # Can't seem to figure out why this plot isn't showing up
                  tabPanel("First tab!",
                           sidebarLayout(
                             sidebarPanel("Some text!",
