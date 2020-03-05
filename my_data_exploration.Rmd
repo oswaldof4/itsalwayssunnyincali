@@ -177,7 +177,6 @@ ggplot(data = elec_ca_sub3) +
 
 ### Here's Plant data
 ```{r}
-
 # ----------
 # Read in data 
 # ----------
@@ -187,13 +186,17 @@ gen_by_plant <- read_csv(here::here("data", "annual_generation_by_power_plant.cs
 plant_info <- read_csv(here::here("data", "plant_info.csv"), 
                        skip = 12, col_names = TRUE)
 
+metadata_df <- read_csv(here::here("data", "plant_metadata.csv"))
+
 # --------
 # Clean up data
 # --------
 
 tidy_gen_by_plant <- gen_by_plant %>% 
   clean_names() %>% 
-  select(year, state, cec_plant_id, status, start_date, retire_date, prime_mover_id, prime_mover_desc, capacity, gross_m_wh, net_m_wh) %>% 
+  select(year, state, cec_plant_id, status, start_date, 
+         retire_date, prime_mover_id, prime_mover_desc, 
+         capacity, gross_m_wh, net_m_wh) %>% 
   rename("gross_mwh" = "gross_m_wh") %>% 
   rename("net_mwh" = "net_m_wh") %>% 
   # filter for just photovoltaics (this excludes solar thermal, wind, etc.)
