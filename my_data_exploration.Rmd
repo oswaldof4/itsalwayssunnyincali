@@ -174,3 +174,49 @@ ggplot(data = elec_ca_sub3) +
   theme_minimal()
 ```
  
+
+### Here's Plant data
+```{r}
+# ----------
+# Read in data 
+# ----------
+
+gen_by_plant <- read_csv(here::here("data", "annual_generation_by_power_plant.csv"))
+
+plant_info <- read_csv(here::here("data", "plant_info.csv"), 
+                       skip = 12, col_names = TRUE)
+
+metadata_df <- read_csv(here::here("data", "plant_metadata.csv")) %>% 
+  filter(PrimeMoverDesc == "Photovoltaic")
+
+# --------
+# Clean up data
+# --------
+
+tidy_gen_by_plant <- gen_by_plant %>% 
+  clean_names() %>% 
+  select(year, state, cec_plant_id, status, start_date, 
+         retire_date, prime_mover_id, prime_mover_desc, 
+         capacity, gross_m_wh, net_m_wh) %>% 
+  rename("gross_mwh" = "gross_m_wh") %>% 
+  rename("net_mwh" = "net_m_wh") %>% 
+  # filter for just photovoltaics (this excludes solar thermal, wind, etc.)
+  # but there are still plants that say the energy source is natural gas/other non-solar...
+  filter(prime_mover_id == "PV")
+  # for visuals, remember to filter out non-operational systems once they have a "retire date" so they still show up if a year is selected before retirement
+
+tidy_plant_info <- plant_info %>% 
+  clean_names() %>% 
+  # we'll already have state in the other df
+  select(-state)
+
+# --------
+# Join dataframes
+# ---------
+
+plants_location_join <- inner_join(tidy_plant_info, tidy_gen_by_plant, "cec_plant_id")
+# note that there are a 19 entries with energy_source_category not equal to "SUN" but prime_mover_id equal to "PV"
+# The net MWh is key - incorporates energy source differences
+
+```
+
