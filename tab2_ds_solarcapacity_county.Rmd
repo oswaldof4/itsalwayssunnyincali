@@ -98,7 +98,7 @@ solar_capacity_plot <- ggplot(data = solar_capacity_df,
   labs(title = "Solar capacity (2008-2018)",
        # add to title **reactive text** "in selected county name" 
        x = "Year",
-       y = "Cumulative capacity installed (kW)") +
+       y = "Cumulative capacity installed (MW)") +
   scale_y_continuous(expand = c(0,0)) +
   scale_x_continuous(lim = c(2008,2019), expand = c(0,0), breaks = seq(2008, 2018, 2)) +
   theme_classic()
@@ -109,8 +109,10 @@ ggplotly(solar_capacity_plot)
 
 # To dos:
 # Figure out how to arrange yearly capacity by the capacity of plant_name
-# Fix plotly hover text issue # For whatever reason, names of plants are ordered in alphabetical order
+# Fix plotly hover text issue # For whatever reason, names of plants are ordered in alphabetical order # Try fct reorder
 # Adjust plotly hover text to look nicer
+
+# Also total numbers do not match SEIA. Look into why this might be
 
 ```
 
@@ -118,9 +120,29 @@ Dataframes for side panel text graphics:
 
 ```{r}
 # -------------
-# % of total California solar capacity
+# % of total California solar capacity in 2018
 # -------------
 
+
+solar_capacity_pct <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  mutate(ca_capacity = sum(capacity)) %>%
+  group_by(county, ca_capacity) %>% 
+  summarize(county_capacity = sum(capacity)) %>% 
+  mutate(pct_total = county_capacity/ca_capacity)
+  
+library(gt)
+solar_capacity_pct %>% 
+  select(-ca_capacity) %>% 
+  gt() %>% 
+  tab_header(
+    title = "County statistics" #, 
+    # subtitle = "Subtitle" 
+  ) %>% 
+   fmt_percent(
+    columns = vars(pct_total),
+    decimals = 1)
 ```
 
 
@@ -129,12 +151,28 @@ Dataframes for side panel text graphics:
 # median system size
 # --------
 
+solar_cap_median <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  group_by(county) %>%
+  summarize(median_cap = median(capacity))
+
 ```
 
 ```{r}
 # ------------
 # number  of homes powered
 # -------------
+
+# Resource: https://www.seia.org/initiatives/whats-megawatt
+
+homes_powered_df <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  mutate(homes_per_MW = 258.1818) %>% 
+  mutate(total_homes_powered = sum(capacity*homes_per_MW)) %>% 
+  group_by(county, total_homes_powered) %>%
+  summarize(homes_powered = sum(capacity*homes_per_MW))
 
 ```
 
