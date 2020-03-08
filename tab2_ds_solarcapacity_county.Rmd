@@ -72,8 +72,11 @@ solar_capacity_df <- plants_location_join %>%
   filter(status == "OP") %>% 
   filter(county == "San Bernardino") %>% 
   group_by(year, plant_name) %>% 
-  summarize(total_capacity = (sum(capacity))) # %>%
-  # mutate(plant_name = fct_reorder(plant_name, desc(total_capacity)))
+  summarize(total_capacity = (sum(capacity))) %>%
+  mutate(plant_name = fct_reorder(plant_name, desc(total_capacity))) # %>% 
+  # 
+
+solar_cap_df2 <- transform(solar_capacity_df, plant_name = reorder(plant_name, total_capacity))
 
 ```
 
@@ -109,10 +112,9 @@ ggplotly(solar_capacity_plot)
 
 # To dos:
 # Figure out how to arrange yearly capacity by the capacity of plant_name
-# Fix plotly hover text issue # For whatever reason, names of plants are ordered in alphabetical order # Try fct reorder
 # Adjust plotly hover text to look nicer
 
-# Also total numbers do not match SEIA. Look into why this might be
+# Also total numbers do not match SEIA. Look into why this might be. It might be because the dataset we are using does not include residential solar.
 
 ```
 
