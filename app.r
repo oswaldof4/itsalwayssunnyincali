@@ -88,6 +88,13 @@ server <- function(input, output){
   #   diamonds %>% 
   #     filter(clarity %in% input$placeholder1)
   # })
+
+  # ----
+  # David's tab
+
+
+  # ----
+  
 }
 
 shinyApp(ui = ui, server = server)
