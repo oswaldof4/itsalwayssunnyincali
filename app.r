@@ -85,7 +85,7 @@ solar_capacity_df <- plants_location_join %>%
 
 
 ui <- navbarPage("California solar electricity exploration",
-                 shinythemes::themeSelector(),
+                 theme = shinytheme("sandstone"),
                  tabPanel("Instructions!",
                           h1("It's always sunny in California"),
                           p("Here's where we would write about what the app is, what it does, and how to use it."),
