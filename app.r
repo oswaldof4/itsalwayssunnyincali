@@ -10,42 +10,16 @@ library(plotly)
 library(sf)
 
 # -------------------------------------
-# Joining plant datasets
+# Data wrangling
 # -------------------------------------
 
-# Read in data 
+# Read in plant generation data 
 
 gen_by_plant <- read_csv(here::here("data", "annual_generation_by_power_plant.csv"))
 
 plant_info <- read_csv(here::here("data", "plant_info.csv"), 
                        skip = 12, col_names = TRUE)
 
-# Clean up data
-
-tidy_gen_by_plant <- gen_by_plant %>% 
-  clean_names() %>% 
-  select(year, state, cec_plant_id, status, start_date, 
-         retire_date, prime_mover_id, prime_mover_desc, 
-         capacity, gross_m_wh, net_m_wh) %>% 
-  rename("gross_mwh" = "gross_m_wh") %>% 
-  rename("net_mwh" = "net_m_wh") %>% 
-  # filter for just photovoltaics (this excludes solar thermal, wind, etc.)
-  filter(prime_mover_id == "PV")
-# for visuals, remember to filter out non-operational systems once they have a "retire date" so they still show up if a year is selected before retirement
-
-tidy_plant_info <- plant_info %>% 
-  clean_names() %>% 
-  # we'll already have state in the other df
-  select(-state)
-
-# Join dataframes
-
-plants_location_join <- inner_join(tidy_plant_info, tidy_gen_by_plant, "cec_plant_id")
-# note that there are a 19 entries wiht energy_source_category not equal to "SUN" but prime_mover_id equal to "PV"
-
-#------------
-# Data wrangling for plant capacity by county and year (tab 2)
-#------------
 # Read in CA shape file
 ca <- read_sf(dsn = here::here("data", "states"),
               layer = "cb_2017_us_state_20m") %>% 
@@ -62,6 +36,32 @@ ca_counties <- read_sf(dsn = here::here("data", "ca_counties"),
   summarize()
 st_crs(ca_counties) = 4326
 
+# ----------------------------
+# Data wrangling
+# ----------------------------
+
+# Julia's tab
+tidy_gen_by_plant <- gen_by_plant %>% 
+  clean_names() %>% 
+  select(year, state, cec_plant_id, status, start_date, 
+         retire_date, prime_mover_id, prime_mover_desc, 
+         capacity, gross_m_wh, net_m_wh) %>% 
+  rename("gross_mwh" = "gross_m_wh") %>% 
+  rename("net_mwh" = "net_m_wh") %>% 
+  # filter for just photovoltaics (this excludes solar thermal, wind, etc.)
+  filter(prime_mover_id == "PV")
+  # for visuals, remember to filter out non-operational systems once they have a "retire date" so they still show up if a year is selected before retirement
+
+tidy_plant_info <- plant_info %>% 
+  clean_names() %>% 
+  # we'll already have state in the other df
+  select(-state)
+
+# Join dataframes
+
+plants_location_join <- inner_join(tidy_plant_info, tidy_gen_by_plant, "cec_plant_id")
+# note that there are a 19 entries wiht energy_source_category not equal to "SUN" but prime_mover_id equal to "PV"
+
 # Get plant capacity by county and year
 plant_capacity <- plants_location_join %>% 
   filter(status == "OP") %>% 
@@ -72,9 +72,6 @@ plant_capacity <- plants_location_join %>%
 cap_county_join <- full_join(plant_capacity, ca_counties, "county")
 cap_county_sf <- st_as_sf(cap_county_join) 
 
-# Julia's Tab
-
-
 # David's tab
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
@@ -83,6 +80,9 @@ solar_capacity_df <- plants_location_join %>%
   group_by(year, plant_name, county) %>% 
   summarize(total_capacity = (sum(capacity))) 
 
+# -----------------------
+# User interface
+# -----------------------
 
 ui <- navbarPage("California solar electricity exploration",
                  theme = shinytheme("sandstone"),
@@ -103,7 +103,8 @@ ui <- navbarPage("California solar electricity exploration",
                                                      min = 2001,
                                                      max = 2018,
                                                      value = 2001
-                                         )
+                                         ) # Maybe we should start at year 2005? years 2001-2005 are all the same
+                                         # Could we add individual points for plants?
                             ),
                             mainPanel("Main panel text!",
                                       plotOutput(outputId = "capacity_map_plot")
@@ -122,33 +123,32 @@ ui <- navbarPage("California solar electricity exploration",
                             ),
                             mainPanel("Main panel text!",
                                       plotOutput(outputId = "solar_capacity_plot")
-                            ) # Can't seem to figure out why this plot isn't showing up
+                            )
                           )
                  ),
                  tabPanel("Low income solar",
                           h2("Low income solar participation by county"),
                           sidebarLayout(
                             sidebarPanel("Some text!",
-                                         checkboxGroupInput(inputId = "placeholder2",
+                                         checkboxGroupInput(inputId = "diamondclarity",
                                                             "Choose some!",
                                                             choices = c(levels(diamonds$clarity))
                                          )
                             ),
                             mainPanel("Main panel text!",
-                                      plotOutput(outputId = "temp_plot2")
+                                      plotOutput(outputId = "diamond_plot2")
                             )
                           )
                  )
 )
 
+# ------------------
+# Server code (reactive only)
+# ------------------
+
 server <- function(input, output){
   
-  output$diamond_plot <- renderPlot({
-    ggplot(data = diamonds, aes(x = carat, y = price)) +
-      geom_point(aes(color = clarity)) +
-      theme_minimal()
-  })
-  
+  # Julia's tab
   capacity_map_sf <- reactive({
     cap_county_sf %>% 
       filter(year %in% input$yearselection)
@@ -168,12 +168,7 @@ server <- function(input, output){
            fill = "Total Capacity")
   })
   
-  output$temp_plot <- renderPlot({
-    ggplot(data = diamonds, aes(x = carat, y = price)) +
-      geom_point(aes(color = clarity)) +
-      theme_minimal()
-  })
-  
+  # David's tab
   solar_capacity <- reactive({
     solar_capacity_df %>% 
       filter(county %in% input$county_selection)
@@ -194,7 +189,16 @@ server <- function(input, output){
       theme_classic()
   })
   
-  # --------------------
+  # Placeholders
+  diamond_clarity <- reactive({
+    diamonds %>% 
+      filter(clarity %in% input$diamondclarity)
+  })
+  
+  output$diamond_plot2 <- renderPlot({
+    ggplot(data = diamond_clarity(), aes(x = clarity, y = price)) +
+      geom_violin(aes(fill = clarity))
+  })
   
 }
 
