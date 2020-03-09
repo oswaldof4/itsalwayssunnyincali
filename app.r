@@ -152,15 +152,6 @@ server <- function(input, output){
       theme_classic()
   })
   
-  # diamond_clarity <- reactive({
-  #   diamonds %>% 
-  #     filter(clarity %in% input$placeholder1)
-  # })
-  
-  
-  
-  
-  
   # --------------------
   
 }
