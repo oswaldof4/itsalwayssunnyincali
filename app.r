@@ -7,6 +7,7 @@ library(lubridate)
 library(janitor)
 library(here)
 library(plotly)
+library(sf)
 
 # -------------------------------------
 # Joining plant datasets
@@ -42,6 +43,38 @@ tidy_plant_info <- plant_info %>%
 plants_location_join <- inner_join(tidy_plant_info, tidy_gen_by_plant, "cec_plant_id")
 # note that there are a 19 entries wiht energy_source_category not equal to "SUN" but prime_mover_id equal to "PV"
 
+#------------
+# Data wrangling for plant capacity by county and year (tab 2)
+#------------
+# Read in CA shape file
+ca <- read_sf(dsn = here::here("data", "states"),
+              layer = "cb_2017_us_state_20m") %>% 
+  dplyr::select(NAME) %>% 
+  filter(NAME == "California") %>% 
+  st_transform(crs = 4326)
+
+# Read in CA counties
+ca_counties <- read_sf(dsn = here::here("data", "ca_counties"), 
+                       layer = "california_county_shape_file") %>% 
+  rename(county = "NAME") %>% 
+  select(county) %>% 
+  group_by(county) %>% 
+  summarize()
+st_crs(ca_counties) = 4326
+
+# Get plant capacity by county and year
+plant_capacity <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  group_by(county, year) %>% 
+  summarize(tot_capacity = sum(capacity))
+
+# Join capacity information to CA counties and make sf object with sticky geometries
+cap_county_join <- full_join(plant_capacity, ca_counties, "county")
+cap_county_sf <- st_as_sf(cap_county_join) 
+
+# Julia's Tab
+
+
 # David's tab
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
@@ -65,15 +98,15 @@ ui <- navbarPage("California solar electricity exploration",
                             solar capacity. Hover cursor over county to view exact capacity."),
                           sidebarLayout(
                             sidebarPanel("Select year",
-                                         sliderInput(inputId = "placeholder1",
+                                         sliderInput(inputId = "yearselection",
                                                      "(range of years)",
-                                                     min = min(diamonds$carat),
-                                                     max = max(diamonds$carat),
-                                                     value = 1
+                                                     min = 2001,
+                                                     max = 2018,
+                                                     value = 2001
                                          )
                             ),
                             mainPanel("Main panel text!",
-                                      plotOutput(outputId = "temp_plot")
+                                      plotOutput(outputId = "capacity_map_plot")
                             ) 
                           )
                  ),
@@ -116,14 +149,23 @@ server <- function(input, output){
       theme_minimal()
   })
   
-  diamond_clarity <- reactive({
-    diamonds %>% 
-      filter(clarity %in% input$diamondclarity)
+  capacity_map_sf <- reactive({
+    cap_county_sf %>% 
+      filter(year %in% input$yearselection)
   })
   
-  output$diamond_plot2 <- renderPlot({
-    ggplot(data = diamond_clarity(), aes(x = clarity, y = price)) +
-      geom_violin(aes(fill = clarity), alpha = 0.5)
+  output$capacity_map_plot <- renderPlot({
+    ggplot() +
+      geom_sf(data = ca) +
+      geom_sf(data = capacity_map_sf(), 
+              aes(fill = tot_capacity), 
+              size = 0.2, 
+              color = "white") +
+      scale_fill_continuous(low = "yellow", high = "red") +
+      theme_minimal() +
+      labs(x = "Latitude", 
+           y = "Longitude",
+           fill = "Total Capacity")
   })
   
   output$temp_plot <- renderPlot({

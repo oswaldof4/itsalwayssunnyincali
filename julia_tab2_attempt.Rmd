@@ -146,6 +146,7 @@ ggplot() +
   theme_minimal() +
   labs(x = "Latitude", 
        y = "Longitude",
-       fill = "Total Capacity")
+       fill = "Total Capacity")+
+  facet_wrap(~year)
 ```
 
