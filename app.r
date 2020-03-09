@@ -1,16 +1,15 @@
-# Second example!!!
+# Make sure we have all the necessary libraries
 
-library(shiny)
-library(tidyverse)
 library(shinythemes)
+library(tidyverse)
 library(lubridate)
 library(janitor)
+library(shiny)
 library(here)
-library(plotly)
 library(sf)
 
 # -------------------------------------
-# Data wrangling
+# Load in raw data
 # -------------------------------------
 
 # Read in plant generation data 
@@ -33,7 +32,7 @@ ca_counties <- read_sf(dsn = here::here("data", "ca_counties"),
   rename(county = "NAME") %>% 
   select(county) %>% 
   group_by(county) %>% 
-  summarize()
+  summarize()  
 st_crs(ca_counties) = 4326
 
 # ----------------------------
@@ -102,7 +101,7 @@ ui <- navbarPage("California solar electricity exploration",
                                                      "(range of years)",
                                                      min = 2001,
                                                      max = 2018,
-                                                     value = 2001
+                                                     value = 2005
                                          ) # Maybe we should start at year 2005? years 2001-2005 are all the same
                                          # Could we add individual points for plants?
                             ),
