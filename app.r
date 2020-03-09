@@ -69,12 +69,41 @@ cap_county_sf <- st_as_sf(cap_county_join)
 
 # ---- David's data wrangling ----
 
+# total operational capacity for each year
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
   group_by(year, plant_name, county) %>% 
   summarize(total_capacity = (sum(capacity))) 
+
+
+# % of total California solar capacity in 2018
+solar_capacity_pct <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  mutate(ca_capacity = sum(capacity)) %>%
+  group_by(county, ca_capacity) %>% 
+  summarize(county_capacity = sum(capacity)) %>% 
+  mutate(pct_total = county_capacity/ca_capacity)
+
+
+# median system size
+solar_cap_median <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  group_by(county) %>%
+  summarize(median_cap = median(capacity))
+
+# numberof homes powered
+# Resource for 258.18 homes / MW stat: https://www.seia.org/initiatives/whats-megawatt
+homes_powered_df <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  mutate(homes_per_MW = 258.1818) %>% 
+  mutate(total_homes_powered = sum(capacity*homes_per_MW)) %>% 
+  group_by(county, total_homes_powered) %>%
+  summarize(homes_powered = sum(capacity*homes_per_MW))
 
 # ---- Waldo's data wrangling ----
 
