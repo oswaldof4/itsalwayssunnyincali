@@ -7,6 +7,7 @@ library(janitor)
 library(shiny)
 library(here)
 library(sf)
+library(plotly)
 
 # ---- Load in raw data ----
 
@@ -107,17 +108,17 @@ ui <- navbarPage("California solar electricity exploration",
                             ) 
                           )
                  ),
-                 tabPanel("Electricity use by county",
-                          h2("Selected county name electricity and solar statistics"),
-                          p("Total county electricity usage and solar generation"),
+                 tabPanel("Solar electricity generation by county",
+                          h2("Cumulative megawatts of solar capacity per county from 2008-2018."),
+                          p("The California Energy Commission collects data from power plants with a total nameplate capacity of 1MW or more that are located within California or within a control area with end users inside California."),
                           sidebarLayout(
-                            sidebarPanel("Some text!",
+                            sidebarPanel("",
                                          selectizeInput(inputId = "county_selection",
-                                                        "Choose some!",
+                                                        "Choose a county:",
                                                         choices = c(unique(solar_capacity_df$county)),
                                                         multiple = T)
                             ),
-                            mainPanel("Main panel text!",
+                            mainPanel("County: ",
                                       plotOutput(outputId = "solar_capacity_plot")
                             )
                           )
