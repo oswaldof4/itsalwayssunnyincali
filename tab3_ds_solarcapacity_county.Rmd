@@ -22,6 +22,7 @@ library(lubridate)
 library(janitor)
 library(here)
 library(plotly)
+library(gt)
 
 ```
 
@@ -71,9 +72,9 @@ solar_capacity_df <- plants_location_join %>%
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
   filter(county == "San Bernardino") %>% 
+  mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
   group_by(year, plant_name) %>% 
-  summarize(total_capacity = (sum(capacity))) %>%
-  mutate(plant_name = fct_reorder(plant_name))
+  summarize(total_capacity = (sum(capacity)))
 
 #solar_cap_df2 <- transform(solar_capacity_df, plant_name = reorder(plant_name, total_capacity))
 
