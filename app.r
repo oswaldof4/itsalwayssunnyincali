@@ -173,6 +173,7 @@ ui <- navbarPage("California solar electricity exploration",
 
 server <- function(input, output){
   
+
   # Julia's tab
   capacity_map_sf <- reactive({
     cap_county_sf %>% 
