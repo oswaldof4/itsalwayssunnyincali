@@ -75,6 +75,9 @@ solar_capacity_df <- plants_location_join %>%
   group_by(year, plant_name, county) %>% 
   summarize(total_capacity = (sum(capacity))) 
 
+# ---- Waldo's data wrangling ----
+
+
 # ---- User interface ----
 
 ui <- navbarPage("California solar electricity exploration",
