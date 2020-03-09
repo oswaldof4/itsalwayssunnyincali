@@ -8,9 +8,7 @@ library(shiny)
 library(here)
 library(sf)
 
-# -------------------------------------
-# Load in raw data
-# -------------------------------------
+# ---- Load in raw data ----
 
 # Read in plant generation data 
 
@@ -35,11 +33,8 @@ ca_counties <- read_sf(dsn = here::here("data", "ca_counties"),
   summarize()  
 st_crs(ca_counties) = 4326
 
-# ----------------------------
-# Data wrangling
-# ----------------------------
+# ---- Julia's data wrangling ----
 
-# Julia's tab
 tidy_gen_by_plant <- gen_by_plant %>% 
   clean_names() %>% 
   select(year, state, cec_plant_id, status, start_date, 
@@ -71,7 +66,8 @@ plant_capacity <- plants_location_join %>%
 cap_county_join <- full_join(plant_capacity, ca_counties, "county")
 cap_county_sf <- st_as_sf(cap_county_join) 
 
-# David's tab
+# ---- David's data wrangling ----
+
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
@@ -79,9 +75,7 @@ solar_capacity_df <- plants_location_join %>%
   group_by(year, plant_name, county) %>% 
   summarize(total_capacity = (sum(capacity))) 
 
-# -----------------------
-# User interface
-# -----------------------
+# ---- User interface ----
 
 ui <- navbarPage("California solar electricity exploration",
                  theme = shinytheme("sandstone"),
@@ -102,7 +96,7 @@ ui <- navbarPage("California solar electricity exploration",
                                                      min = 2001,
                                                      max = 2018,
                                                      value = 2005
-                                         ) # Maybe we should start at year 2005? years 2001-2005 are all the same
+                                         ) # Years 2001-2005 are all the same
                                          # Could we add individual points for plants?
                             ),
                             mainPanel("Main panel text!",
@@ -141,9 +135,7 @@ ui <- navbarPage("California solar electricity exploration",
                  )
 )
 
-# ------------------
-# Server code (reactive only)
-# ------------------
+# ---- Server code (reactive only) ----
 
 server <- function(input, output){
   
