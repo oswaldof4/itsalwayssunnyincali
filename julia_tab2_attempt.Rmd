@@ -54,6 +54,9 @@ tidy_plant_info <- plant_info %>%
   # we'll already have state in the other df
   select(-state)
 
+total_ca_gen <- gen_by_plant %>% 
+  clean_names()
+
 # --------
 # Join dataframes
 # ---------
