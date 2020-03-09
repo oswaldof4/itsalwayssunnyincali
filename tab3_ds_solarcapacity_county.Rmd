@@ -1,0 +1,180 @@
+---
+title: "energy_production_join_ds"
+author: "David Segan"
+date: "3/2/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+Join energy generation plant info with locational plant info. Filtered for Solar PV.
+
+```{r}
+# ----------
+# Install ibraries
+# ---------
+
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(here)
+library(plotly)
+
+```
+
+```{r}
+
+# ----------
+# Read in data 
+# ----------
+
+gen_by_plant <- read_csv(here::here("data", "annual_generation_by_power_plant.csv"))
+
+plant_info <- read_csv(here::here("data", "plant_info.csv"), 
+                       skip = 12, col_names = TRUE)
+
+# --------
+# Clean up data
+# --------
+
+tidy_gen_by_plant <- gen_by_plant %>% 
+  clean_names() %>% 
+  select(year, state, cec_plant_id, status, start_date, retire_date, prime_mover_id, prime_mover_desc, capacity, gross_m_wh, net_m_wh) %>% 
+  rename("gross_mwh" = "gross_m_wh") %>% 
+  rename("net_mwh" = "net_m_wh") %>% 
+  # filter for just photovoltaics (this excludes solar thermal, wind, etc.)
+  filter(prime_mover_id == "PV")
+  # for visuals, remember to filter out non-operational systems once they have a "retire date" so they still show up if a year is selected before retirement
+
+tidy_plant_info <- plant_info %>% 
+  clean_names() %>% 
+  # we'll already have state in the other df
+  select(-state)
+
+# --------
+# Join dataframes
+# ---------
+
+plants_location_join <- inner_join(tidy_plant_info, tidy_gen_by_plant, "cec_plant_id")
+# note that there are a 19 entries wiht energy_source_category not equal to "SUN" but prime_mover_id equal to "PV"
+
+```
+
+Refine df for line graph of solar capacity
+
+```{r}
+
+solar_capacity_df <- plants_location_join %>% 
+  select(-resource_id, -resource_id_name) %>%
+  filter(status == "OP") %>% 
+  filter(county == "San Bernardino") %>% 
+  group_by(year, plant_name) %>% 
+  summarize(total_capacity = (sum(capacity))) %>%
+  mutate(plant_name = fct_reorder(plant_name))
+
+#solar_cap_df2 <- transform(solar_capacity_df, plant_name = reorder(plant_name, total_capacity))
+
+```
+
+Graph solar capacity overtime
+
+```{r}
+
+ # solar_capacity <- reactive({
+ #    solar_capacity_df %>%
+ #      # %in% is basically an OR statement. look for anything in **county_selection** widget and filter county column based on that
+ #      filter(county %in% input$county_selection)
+ #  })
+ # 
+ #  output$solar_plot_overtime <- renderPlot({
+
+# remember to add () after df since reactive
+solar_capacity_plot <- ggplot(data = solar_capacity_df,
+                                  aes(x = year,
+                                      y = total_capacity,
+                                      group = plant_name)) +
+  geom_col(color = alpha("black",.1), fill = "orange", alpha = 1, show.legend = FALSE) +
+  labs(title = "Solar capacity (2008-2018)",
+       # add to title **reactive text** "in selected county name" 
+       x = "Year",
+       y = "Cumulative capacity installed (MW)") +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_continuous(lim = c(2008,2019), expand = c(0,0), breaks = seq(2008, 2018, 2)) +
+  theme_classic()
+
+ggplotly(solar_capacity_plot)
+  
+  #})
+
+# To dos:
+# Figure out how to arrange yearly capacity by the capacity of plant_name
+# Adjust plotly hover text to look nicer
+
+# Also total numbers do not match SEIA. Look into why this might be. It might be because the dataset we are using does not include residential solar.
+
+```
+
+Dataframes for side panel text graphics:
+
+```{r}
+# -------------
+# % of total California solar capacity in 2018
+# -------------
+
+
+solar_capacity_pct <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  mutate(ca_capacity = sum(capacity)) %>%
+  group_by(county, ca_capacity) %>% 
+  summarize(county_capacity = sum(capacity)) %>% 
+  mutate(pct_total = county_capacity/ca_capacity)
+  
+library(gt)
+solar_capacity_pct %>% 
+  select(-ca_capacity) %>% 
+  gt() %>% 
+  tab_header(
+    title = "County statistics" #, 
+    # subtitle = "Subtitle" 
+  ) %>% 
+   fmt_percent(
+    columns = vars(pct_total),
+    decimals = 1)
+```
+
+
+```{r}
+# ---------
+# median system size
+# --------
+
+solar_cap_median <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  group_by(county) %>%
+  summarize(median_cap = median(capacity))
+
+```
+
+```{r}
+# ------------
+# number  of homes powered
+# -------------
+
+# Resource: https://www.seia.org/initiatives/whats-megawatt
+
+homes_powered_df <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  mutate(homes_per_MW = 258.1818) %>% 
+  mutate(total_homes_powered = sum(capacity*homes_per_MW)) %>% 
+  group_by(county, total_homes_powered) %>%
+  summarize(homes_powered = sum(capacity*homes_per_MW))
+
+
+```
+
