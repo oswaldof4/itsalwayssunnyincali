@@ -14,7 +14,7 @@ Join energy generation plant info with locational plant info. Filtered for Solar
 
 ```{r}
 # ----------
-# Install ibraries
+# Install libraries
 # ---------
 
 library(tidyverse)
