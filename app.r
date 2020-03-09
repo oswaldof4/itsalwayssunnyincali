@@ -163,9 +163,7 @@ server <- function(input, output){
               color = "white") +
       scale_fill_continuous(low = "yellow", high = "red") +
       theme_minimal() +
-      labs(x = "Latitude", 
-           y = "Longitude",
-           fill = "Total Capacity")
+      labs(fill = "Total Capacity")
   })
   
   # David's tab
