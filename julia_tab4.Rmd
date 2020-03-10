@@ -1,0 +1,29 @@
+---
+title: "Julia’s Tab 4"
+author: "Julia Dagum"
+date: "3/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+```
+
+```{r}
+gen_tidy_ca <- gen_by_plant %>% 
+  clean_names() %>% 
+  filter(state == "CA")
+
+# gen_resource_type <- gen_tidy_ca %>% 
+#   mutate(resource_type = 
+#            case_when(pri_energy_source == ))
+```
+
+
+
+
+
+
+
