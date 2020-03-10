@@ -7,6 +7,7 @@ library(janitor)
 library(shiny)
 library(here)
 library(sf)
+library(plotly)
 
 # ---- Load in raw data ----
 
@@ -68,12 +69,41 @@ cap_county_sf <- st_as_sf(cap_county_join)
 
 # ---- David's data wrangling ----
 
+# total operational capacity for each year
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
   group_by(year, plant_name, county) %>% 
   summarize(total_capacity = (sum(capacity))) 
+
+
+# % of total California solar capacity in 2018
+solar_capacity_pct <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  mutate(ca_capacity = sum(capacity)) %>%
+  group_by(county, ca_capacity) %>% 
+  summarize(county_capacity = sum(capacity)) %>% 
+  mutate(pct_total = county_capacity/ca_capacity)
+
+
+# median system size
+solar_cap_median <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  group_by(county) %>%
+  summarize(median_cap = median(capacity))
+
+# numberof homes powered
+# Resource for 258.18 homes / MW stat: https://www.seia.org/initiatives/whats-megawatt
+homes_powered_df <- plants_location_join %>% 
+  filter(status == "OP") %>% 
+  filter(year == 2018) %>%
+  mutate(homes_per_MW = 258.1818) %>% 
+  mutate(total_homes_powered = sum(capacity*homes_per_MW)) %>% 
+  group_by(county, total_homes_powered) %>%
+  summarize(homes_powered = sum(capacity*homes_per_MW))
 
 # ---- Waldo's data wrangling ----
 
@@ -107,17 +137,18 @@ ui <- navbarPage("California solar electricity exploration",
                             ) 
                           )
                  ),
-                 tabPanel("Electricity use by county",
-                          h2("Selected county name electricity and solar statistics"),
-                          p("Total county electricity usage and solar generation"),
+                 tabPanel("Solar electricity generation by county",
+                          h2("Cumulative megawatts of solar capacity per county from 2008-2018."),
+                          p("The California Energy Commission collects data from power plants with a total nameplate capacity of 1MW or more that are located within California or within a control area with end users inside California."),
                           sidebarLayout(
-                            sidebarPanel("Some text!",
+                            sidebarPanel("",
                                          selectizeInput(inputId = "county_selection",
-                                                        "Choose some!",
+                                                        "Choose a county:",
                                                         choices = c(unique(solar_capacity_df$county)),
                                                         multiple = T)
                             ),
-                            mainPanel("Main panel text!",
+                            mainPanel(
+                              textOutput("selectedcounty"),
                                       plotOutput(outputId = "solar_capacity_plot")
                             )
                           )
@@ -142,6 +173,7 @@ ui <- navbarPage("California solar electricity exploration",
 
 server <- function(input, output){
   
+
   # Julia's tab
   capacity_map_sf <- reactive({
     cap_county_sf %>% 
@@ -164,6 +196,10 @@ server <- function(input, output){
   solar_capacity <- reactive({
     solar_capacity_df %>% 
       filter(county %in% input$county_selection)
+  })
+  
+  output$selectedcounty <- renderText({
+    paste(input$county_selection)
   })
   
   output$solar_capacity_plot <- renderPlot({
