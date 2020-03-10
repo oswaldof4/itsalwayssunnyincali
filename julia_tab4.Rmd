@@ -16,9 +16,31 @@ gen_tidy_ca <- gen_by_plant %>%
   clean_names() %>% 
   filter(state == "CA")
 
-# gen_resource_type <- gen_tidy_ca %>% 
-#   mutate(resource_type = 
-#            case_when(pri_energy_source == ))
+gen_resource_type <- gen_tidy_ca %>% 
+  mutate(resource_type = 
+         case_when(pri_energy_source == "BAT" ~ "other",
+                   pri_energy_source == "OBG" ~ "biomass", 
+                   pri_energy_source == "NG" ~ "natural_gas", 
+                   pri_energy_source == "BIT" ~ "coal", 
+                   pri_energy_source == "PC" ~ "coal", 
+                   pri_energy_source == "WDS" ~ "biomass", 
+                   pri_energy_source == "AB" ~ "biomass", 
+                   pri_energy_source == "SUN" ~ "solar", 
+                   pri_energy_source == "OGW" ~ "biomass", 
+                   pri_energy_source == "BLQ" ~ "biomass", 
+                   pri_energy_source == "LFG" ~ "biomass", 
+                   pri_energy_source == "MSW" ~ "biomass" ,
+                   pri_energy_source == "DFO" ~ "oil", 
+                   pri_energy_source == "WH" ~ "other", 
+                   pri_energy_source == "OG" ~ "natural_gas", 
+                   pri_energy_source == "OIL" ~ "oil", 
+                   pri_energy_source == "JF" ~ "oil", 
+                   pri_energy_source == "GAS" ~ "natural_gas", 
+                   pri_energy_source == "WAT" ~ "hydro", 
+                   pri_energy_source == "NUC" ~ "nuclear", 
+                   pri_energy_source == "Sun" ~ "solar", 
+                   pri_energy_source == "GEO" ~ "geothermal", 
+                   pri_energy_source == "WND" ~ "wind"))
 ```
 
 
