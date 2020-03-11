@@ -74,7 +74,7 @@ solar_capacity_df <- plants_location_join %>%
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
-  group_by(year, plant_name, county) %>% 
+  group_by(year, county, plant_name, ) %>% 
   summarize(total_capacity = (sum(capacity))) %>% 
   mutate(annual_count = n())
 
@@ -217,7 +217,11 @@ server <- function(input, output){
            fill = "Count of installations") +
       scale_y_continuous(expand = c(0,0)) +
       scale_x_continuous(lim = c(2008,2019), expand = c(0,0), breaks = seq(2008, 2018, 2)) +
-      theme_classic()
+      theme_classic() +
+      theme(legend.justification = c(0,1),
+            legend.position = c(0.1,0.9),
+            legend.background = element_blank(),
+            legend.key = element_blank())
   })
   
   # Placeholders

@@ -107,8 +107,13 @@ solar_capacity_plot <- ggplot(data = solar_capacity_df,
        fill = "Count of installations") +
   scale_y_continuous(expand = c(0,0)) +
   scale_x_continuous(lim = c(2008,2019), expand = c(0,0), breaks = seq(2008, 2018, 2)) +
-  theme_classic()
+  theme_classic() +
+  theme(legend.justification = c(0,1),
+        legend.position = c(0.1,0.9),
+        legend.background = element_blank(),
+        legend.key = element_blank()) 
 
+solar_capacity_plot
 ggplotly(solar_capacity_plot)
   
   #})
