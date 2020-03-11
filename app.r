@@ -75,7 +75,8 @@ solar_capacity_df <- plants_location_join %>%
   filter(status == "OP") %>% 
   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
   group_by(year, plant_name, county) %>% 
-  summarize(total_capacity = (sum(capacity))) 
+  summarize(total_capacity = (sum(capacity))) %>% 
+  mutate(annual_count = n())
 
 
 # % of total California solar capacity in 2018
@@ -207,11 +208,13 @@ server <- function(input, output){
            aes(x = year,
                y = total_capacity,
                group = plant_name)) +
-      geom_col(color = alpha("black",.1), fill = "orange", alpha = 1, show.legend = FALSE) +
+      geom_col(color = alpha("black",.1), aes(fill = annual_count), alpha = 1, show.legend = TRUE) +
+      scale_fill_continuous(low = "yellow", high = "orange") +
       labs(title = "Solar capacity (2008-2018)",
            # add to title **reactive text** "in selected county name" 
            x = "Year",
-           y = "Cumulative capacity installed (MW)") +
+           y = "Cumulative capacity installed (MW)",
+           fill = "Count of installations") +
       scale_y_continuous(expand = c(0,0)) +
       scale_x_continuous(lim = c(2008,2019), expand = c(0,0), breaks = seq(2008, 2018, 2)) +
       theme_classic()
