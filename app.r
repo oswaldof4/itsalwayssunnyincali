@@ -116,11 +116,11 @@ table_df <- full_join(part_table_df, homes_powered_df) %>%
 
 # ---- User interface ----
 
-ui <- navbarPage("California solar electricity exploration",
+ui <- navbarPage("It's Always Sunny in California",
                  theme = shinytheme("sandstone"),
-                 tabPanel("Instructions!",
+                 tabPanel("Home",
                           sidebarLayout(
-                            sidebarPanel(h1("It's always sunny in California"),
+                            sidebarPanel(h1("California solar exploration"),
                                          p("Here's where we would write about what the app is, what it does, and how to use it.")
                             ),
                             mainPanel(img(src="featured_image.jpg", height = "75%", width = "75%", style = 'display: block;'),
@@ -141,11 +141,11 @@ ui <- navbarPage("California solar electricity exploration",
                                                      "(range of years)",
                                                      min = 2008,
                                                      max = 2018,
-                                                     value = 2018
+                                                     value = 2008
                                          ) # Years 2001-2005 are all the same
                                          # Could we add individual points for plants?
                             ),
-                            mainPanel("Main panel text!",
+                            mainPanel("",
                                       plotOutput(outputId = "capacity_map_plot")
                             ) 
                           )
@@ -202,7 +202,7 @@ server <- function(input, output){
               color = "white") +
       scale_fill_continuous(low = "yellow", high = "red") +
       theme_minimal() +
-      labs(fill = "Total Capacity")
+      labs(fill = "Total Capacity (MW)")
   })
   
   # David's tab
