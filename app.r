@@ -116,11 +116,11 @@ table_df <- full_join(part_table_df, homes_powered_df) %>%
 
 # ---- User interface ----
 
-ui <- navbarPage("California solar electricity exploration",
+ui <- navbarPage("It's Always Sunny in California",
                  theme = shinytheme("sandstone"),
-                 tabPanel("Instructions!",
+                 tabPanel("Home",
                           sidebarLayout(
-                            sidebarPanel(h1("It's always sunny in California"),
+                            sidebarPanel(h1("California solar exploration"),
                                          p("Here's where we would write about what the app is, what it does, and how to use it.")
                             ),
                             mainPanel(img(src="featured_image.jpg", height = "75%", width = "75%", style = 'display: block;'),
@@ -141,11 +141,11 @@ ui <- navbarPage("California solar electricity exploration",
                                                      "(range of years)",
                                                      min = 2008,
                                                      max = 2018,
-                                                     value = 2018
+                                                     value = 2008
                                          ) # Years 2001-2005 are all the same
                                          # Could we add individual points for plants?
                             ),
-                            mainPanel("Main panel text!",
+                            mainPanel("",
                                       plotOutput(outputId = "capacity_map_plot")
                             ) 
                           )
@@ -166,14 +166,19 @@ ui <- navbarPage("California solar electricity exploration",
                           ),
                           plotOutput(outputId = "solar_capacity_plot"),
                  ),
-                 tabPanel("Low income solar",
-                          h2("Low income solar participation by county"),
+                 tabPanel("CA vs. other states",
+                          h2("Solar statistics by state"),
                           sidebarLayout(
                             sidebarPanel("Some text!",
                                          checkboxGroupInput(inputId = "diamondclarity",
                                                             "Choose some!",
                                                             choices = c(levels(diamonds$clarity))
-                                         )
+                                         ),
+                                         selectizeInput(inputId = "state_selection",
+                                                        "Choose a state:",
+                                                        choices = c(unique(solar_frac_state$state)),
+                                                        multiple = T,
+                                                        selected = "CA")
                             ),
                             mainPanel("Main panel text!",
                                       plotOutput(outputId = "diamond_plot2")
@@ -202,7 +207,7 @@ server <- function(input, output){
               color = "white") +
       scale_fill_continuous(low = "yellow", high = "red") +
       theme_minimal() +
-      labs(fill = "Total Capacity")
+      labs(fill = "Total Capacity (MW)")
   })
   
   # David's tab
@@ -265,6 +270,11 @@ server <- function(input, output){
   diamond_clarity <- reactive({
     diamonds %>% 
       filter(clarity %in% input$diamondclarity)
+  })
+  
+  state_selection <- reactive({
+    solar_frac_state %>% 
+      filter(state %in% input$state_selection)
   })
   
   output$diamond_plot2 <- renderPlot({
