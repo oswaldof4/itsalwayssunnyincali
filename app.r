@@ -248,6 +248,11 @@ server <- function(input, output){
       fmt_percent(
         columns = vars(pct_total),
         decimals = 1) %>%
+      fmt_number(
+        columns = vars(homes_powered),
+        decimals = 0,
+        use_seps = T
+      ) %>% 
       cols_label(
         county = "",
         pct_total = "Percentage of CA solar",
