@@ -78,36 +78,35 @@ tidy_gen_state <- annual_generation_state %>%
   clean_names()
 
 # Get total mwh generation of solar and total for each state in 2018
-solar_by_state_2018 <- tidy_gen_state %>% 
+solar_by_state <- tidy_gen_state %>% 
   mutate(mwh_numeric = as.numeric(gsub(",", "", generation_megawatthours))) %>% 
   filter(energy_source %in% c("Total", "Solar Thermal and Photovoltaic")) %>% 
-  filter(year == "2018") %>% 
   select(year, state, energy_source, generation_megawatthours, mwh_numeric) %>% 
-  group_by(state, energy_source) %>% 
+  group_by(state, energy_source, year) %>% 
   summarize(energy_source_sum = sum(mwh_numeric))
 
 # Get total minus solar for each state by putting into wide format
-total_minus_solar_state <- solar_by_state_2018 %>% 
+total_out_of_solar_state <- solar_by_state %>% 
   pivot_wider(names_from = energy_source, 
               values_from = energy_source_sum) %>% 
   clean_names() %>% 
   mutate(solar_thermal_and_photovoltaic = 
            replace_na(solar_thermal_and_photovoltaic, 0)) %>% 
-  mutate(total_minus_solar = (total - solar_thermal_and_photovoltaic))
+  mutate(total_out_of_solar = (solar_thermal_and_photovoltaic / total)) %>%
+  mutate(year = as.numeric(year))
 
 # put back into longer format for ggplot
-total_minus_solar_longer <- total_minus_solar_state %>% 
-  pivot_longer(cols = c(total, solar_thermal_and_photovoltaic, total_minus_solar)) %>% 
-  filter(name %in% c("solar_thermal_and_photovoltaic", "total_minus_solar")) %>% 
-  filter(state == "CA")
+total_out_of_solar_longer <- total_out_of_solar_state %>% 
+  pivot_longer(cols = c(total, solar_thermal_and_photovoltaic, total_out_of_solar)) %>% 
+  filter(name == "total_out_of_solar") %>% 
+  filter(state %in% c("CA", "AZ"))
 
 # Make graph of solar compared to all other energy for CA in 2018
 
-ggplot(data = total_minus_solar_longer, 
-       aes(x = state, 
-           y = value, 
-           fill = name)) +
-  geom_bar(position="stack", stat="identity") 
+ggplot(data = total_out_of_solar_state, 
+       aes(x = year, 
+           y = total_out_of_solar)) +
+  geom_line(aes(color = state)) 
 
 # Looking at generation from all resource types in CA in 2018 
 
