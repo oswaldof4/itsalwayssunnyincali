@@ -116,7 +116,7 @@ ui <- navbarPage("California solar electricity exploration",
                  tabPanel("Instructions!",
                           h1("It's always sunny in California"),
                           p("Here's where we would write about what the app is, what it does, and how to use it."),
-                          img(src="featured_image.jpg", height = "100%", width = "100%", style = 'position: absolute; opacity: 0.5;'),
+                          img(src="featured_image.jpg", height = "100%", width = "100%", style = 'position: absolute; opacity: 0.7;'),
                           tags$hr(),
                           plotOutput(outputId = "diamond_plot")
                  ),
