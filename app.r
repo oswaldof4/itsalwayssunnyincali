@@ -154,12 +154,12 @@ ui <- navbarPage("California solar electricity exploration",
                                          selectizeInput(inputId = "county_selection",
                                                         "Choose a county:",
                                                         choices = c(unique(solar_capacity_df$county)),
-                                                        multiple = T)
+                                                        multiple = T,
+                                                        selected = "Santa Barbara")
                             ),
                             mainPanel(gt_output(outputId = "gt")
                             )
                           ),
-                          textOutput("selectedcounty"),
                           plotOutput(outputId = "solar_capacity_plot"),
                  ),
                  tabPanel("Low income solar",
@@ -205,10 +205,6 @@ server <- function(input, output){
   solar_capacity <- reactive({
     solar_capacity_df %>% 
       filter(county %in% input$county_selection)
-  })
-  
-  output$selectedcounty <- renderText({
-    paste(input$county_selection)
   })
   
   output$solar_capacity_plot <- renderPlot({
