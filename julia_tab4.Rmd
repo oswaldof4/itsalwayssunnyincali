@@ -85,28 +85,39 @@ solar_by_state <- tidy_gen_state %>%
   group_by(state, energy_source, year) %>% 
   summarize(energy_source_sum = sum(mwh_numeric))
 
-# Get total minus solar for each state by putting into wide format
-total_out_of_solar_state <- solar_by_state %>% 
+# Get solar as fraction of total for each state by putting into wide format
+solar_frac_state <- solar_by_state %>% 
   pivot_wider(names_from = energy_source, 
               values_from = energy_source_sum) %>% 
   clean_names() %>% 
-  mutate(solar_thermal_and_photovoltaic = 
+  mutate(solar = 
            replace_na(solar_thermal_and_photovoltaic, 0)) %>% 
-  mutate(total_out_of_solar = (solar_thermal_and_photovoltaic / total)) %>%
-  mutate(year = as.numeric(year))
+  mutate(solar_frac = (solar / total)) %>%
+  mutate(year = as.numeric(year)) 
 
 # put back into longer format for ggplot
-total_out_of_solar_longer <- total_out_of_solar_state %>% 
-  pivot_longer(cols = c(total, solar_thermal_and_photovoltaic, total_out_of_solar)) %>% 
-  filter(name == "total_out_of_solar") %>% 
-  filter(state %in% c("CA", "AZ"))
+# total_out_of_solar_longer <- total_out_of_solar_state %>% 
+#   pivot_longer(cols = c(total, solar_thermal_and_photovoltaic, total_out_of_solar)) %>% 
+#   filter(name == "total_out_of_solar") %>% 
+#   filter(state %in% c("CA", "AZ"))
 
 # Make graph of solar compared to all other energy for CA in 2018
 
-ggplot(data = total_out_of_solar_state, 
+ggplot(data = solar_frac_state, 
        aes(x = year, 
-           y = total_out_of_solar)) +
-  geom_line(aes(color = state)) 
+           y = solar_frac)) +
+  geom_line(aes(color = state)) +
+  theme_minimal() +
+  labs(x = "Year", 
+       y = "Solar as fraction of total generation")
+
+ggplot(data = solar_frac_state, 
+       aes(x = year, 
+           y = total)) +
+  geom_line(aes(color = state)) +
+  theme_minimal() +
+  labs(x = "Year", 
+       y = "Total Annual Solar Generation (Mwh)")
 
 # Looking at generation from all resource types in CA in 2018 
 
