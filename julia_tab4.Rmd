@@ -9,54 +9,98 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(janitor)
+library(RColorBrewer)
 ```
 
 ```{r}
+# Get just CA generation
 
-gen_tidy_ca <- gen_by_plant %>% 
-  clean_names() %>% 
-  filter(state == "CA")
+# gen_tidy_ca <- gen_by_plant %>%
+#   clean_names() %>%
+#   filter(state == "CA")
 
-gen_resource_type <- gen_tidy_ca %>% 
-  mutate(resource_type = 
-         case_when(pri_energy_source == "BAT" ~ "other",
-                   pri_energy_source == "OBG" ~ "biomass", 
-                   pri_energy_source == "NG" ~ "natural_gas", 
-                   pri_energy_source == "BIT" ~ "coal", 
-                   pri_energy_source == "PC" ~ "coal", 
-                   pri_energy_source == "WDS" ~ "biomass", 
-                   pri_energy_source == "AB" ~ "biomass", 
-                   pri_energy_source == "SUN" ~ "solar", 
-                   pri_energy_source == "OGW" ~ "biomass", 
-                   pri_energy_source == "BLQ" ~ "biomass", 
-                   pri_energy_source == "LFG" ~ "biomass", 
-                   pri_energy_source == "MSW" ~ "biomass" ,
-                   pri_energy_source == "DFO" ~ "oil", 
-                   pri_energy_source == "WH" ~ "other", 
-                   pri_energy_source == "OG" ~ "natural_gas", 
-                   pri_energy_source == "OIL" ~ "oil", 
-                   pri_energy_source == "JF" ~ "oil", 
-                   pri_energy_source == "GAS" ~ "natural_gas", 
-                   pri_energy_source == "WAT" ~ "hydro", 
-                   pri_energy_source == "NUC" ~ "nuclear", 
-                   pri_energy_source == "Sun" ~ "solar", 
-                   pri_energy_source == "GEO" ~ "geothermal", 
-                   pri_energy_source == "WND" ~ "wind"))
+# Make new column for resource type 
 
-capacity_sum <- gen_resource_type %>% 
-  group_by(resource_type, year) %>% 
-  summarize(tot_capacity = sum(capacity))
+# gen_resource_type <- gen_tidy_ca %>% 
+#   mutate(resource_type = 
+#          case_when(pri_energy_source == "BAT" ~ "other",
+#                    pri_energy_source == "OBG" ~ "biomass", 
+#                    pri_energy_source == "NG" ~ "natural_gas", 
+#                    pri_energy_source == "BIT" ~ "coal", 
+#                    pri_energy_source == "PC" ~ "coal", 
+#                    pri_energy_source == "WDS" ~ "biomass", 
+#                    pri_energy_source == "AB" ~ "biomass", 
+#                    pri_energy_source == "SUN" ~ "solar", 
+#                    pri_energy_source == "OGW" ~ "biomass", 
+#                    pri_energy_source == "BLQ" ~ "biomass", 
+#                    pri_energy_source == "LFG" ~ "biomass", 
+#                    pri_energy_source == "MSW" ~ "biomass" ,
+#                    pri_energy_source == "DFO" ~ "oil", 
+#                    pri_energy_source == "WH" ~ "other", 
+#                    pri_energy_source == "OG" ~ "natural_gas", 
+#                    pri_energy_source == "OIL" ~ "oil", 
+#                    pri_energy_source == "JF" ~ "oil", 
+#                    pri_energy_source == "GAS" ~ "natural_gas", 
+#                    pri_energy_source == "WAT" ~ "hydro", 
+#                    pri_energy_source == "NUC" ~ "nuclear", 
+#                    pri_energy_source == "Sun" ~ "solar", 
+#                    pri_energy_source == "GEO" ~ "geothermal", 
+#                    pri_energy_source == "WND" ~ "wind"))
 
-ggplot(data = capacity_sum, aes(x = year, 
-                                y = tot_capacity, 
-                                color = resource_type)) +
-  geom_line() +
-  theme_minimal()
-  
+# look at capacity by resoure type over time in CA
+
+# capacity_sum <- gen_resource_type %>% 
+#   group_by(resource_type, year) %>% 
+#   summarize(tot_capacity = sum(capacity))
+# 
+# ggplot(data = capacity_sum, aes(x = year, 
+#                                 y = tot_capacity, 
+#                                 color = resource_type)) +
+#   scale_color_brewer(type = "qual", palette = 2)+
+#   geom_line() 
 
 ```
 
+Not very interesting because most resource types don't have any changes in capacity over the last 18 years. Let's look at solar capacity by state instead.
 
+```{r}
+# read in data from US Energy Information Administration, annual generation by state for each resource type from 1990 - 2018 and remove first row
+
+# Could not figure out code using tidyverse, so run these three lines of code before using annual_generation_state to make tidy_gen_state
+
+annual_generation_state <- read_csv("annual_generation_state.csv")
+colnames(annual_generation_state) <- as.character(unlist(annual_generation_state[1,]))
+annual_generation_state = annual_generation_state[-1, ]
+
+# Make tidy dataframe with generation by state, resource and year
+
+tidy_gen_state <- annual_generation_state %>% 
+  clean_names()
+
+solar_by_state_2018 <- tidy_gen_state %>% 
+  mutate(mwh_numeric = as.numeric(gsub(",", "", generation_megawatthours))) %>% 
+  filter(energy_source %in% c("Total", "Solar Thermal and Photovoltaic")) %>% 
+  filter(year == "2018") 
+  group_by(energy_source, state) %>% 
+  summarize(energy_source_sum = sum(mwh_numeric))
+
+
+# Looking at generation from all resource types in CA in 2018 
+
+generation_ca_2018 <- tidy_gen_state %>% 
+  mutate(mwh_numeric = as.numeric(gsub(",", "", generation_megawatthours))) %>% 
+  filter(state == "CA") %>% 
+  filter(year == "2018") %>% 
+  group_by(energy_source, state) %>% 
+  summarize(energy_source_sum = sum(mwh_numeric))
+
+ggplot(data = generation_ca_2018, aes(x = state, 
+                                 y = energy_source_sum, 
+                                 fill = energy_source)) +
+  geom_bar(position="stack", stat="identity")
+
+
+```
 
 
 
