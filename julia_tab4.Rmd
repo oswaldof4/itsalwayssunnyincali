@@ -121,17 +121,17 @@ ggplot(data = solar_frac_state,
 
 # Looking at generation from all resource types in CA in 2018 
 
-generation_ca_2018 <- tidy_gen_state %>% 
-  mutate(mwh_numeric = as.numeric(gsub(",", "", generation_megawatthours))) %>% 
-  filter(state == "CA") %>% 
-  filter(year == "2018") %>% 
-  group_by(energy_source, state) %>% 
-  summarize(energy_source_sum = sum(mwh_numeric))
-
-ggplot(data = generation_ca_2018, aes(x = state, 
-                                 y = energy_source_sum, 
-                                 fill = energy_source)) +
-  geom_bar(position="stack", stat="identity")
+# generation_ca_2018 <- tidy_gen_state %>% 
+#   mutate(mwh_numeric = as.numeric(gsub(",", "", generation_megawatthours))) %>% 
+#   filter(state == "CA") %>% 
+#   filter(year == "2018") %>% 
+#   group_by(energy_source, state) %>% 
+#   summarize(energy_source_sum = sum(mwh_numeric))
+# 
+# ggplot(data = generation_ca_2018, aes(x = state, 
+#                                  y = energy_source_sum, 
+#                                  fill = energy_source)) +
+#   geom_bar(position="stack", stat="identity")
 
 
 ```
