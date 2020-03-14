@@ -34,7 +34,16 @@ ca_counties <- read_sf(dsn = here::here("data", "ca_counties"),
   summarize()  
 st_crs(ca_counties) = 4326
 
-# ---- Julia's data wrangling ----
+# read in data from US Energy Information Administration, annual generation by state for each resource type from 1990 - 2018 and remove first row
+
+# Could not figure out code using tidyverse, so run these three lines of code before using annual_generation_state to make tidy_gen_state
+
+annual_generation_state <- read_csv("annual_generation_state.csv")
+colnames(annual_generation_state) <- as.character(unlist(annual_generation_state[1,]))
+annual_generation_state = annual_generation_state[-1, ]
+
+
+# ---- Tab 2 data wrangling ----
 
 tidy_gen_by_plant <- gen_by_plant %>% 
   clean_names() %>% 
@@ -67,7 +76,7 @@ plant_capacity <- plants_location_join %>%
 cap_county_join <- full_join(plant_capacity, ca_counties, "county")
 cap_county_sf <- st_as_sf(cap_county_join) 
 
-# ---- David's data wrangling ----
+# ---- Tab 3 data wrangling ----
 
 # total operational capacity for each year
 solar_capacity_df <- plants_location_join %>% 
@@ -106,13 +115,62 @@ homes_powered_df <- plants_location_join %>%
   group_by(county, total_homes_powered) %>%
   summarize(homes_powered = sum(capacity*homes_per_MW))
 
-# ---- Waldo's data wrangling ----
+# ---- Tab 3 continued data wrangling ----
 
 part_table_df <- full_join(solar_capacity_pct, solar_cap_median) %>% 
   select(-ca_capacity, -county_capacity)
 
 table_df <- full_join(part_table_df, homes_powered_df) %>% 
   select(-total_homes_powered)
+
+# ----- Tab 4 data wrangling ---------
+
+# Make tidy dataframe with generation by state, resource and year
+
+tidy_gen_state <- annual_generation_state %>% 
+  clean_names()
+
+# Get total mwh generation of solar and total for each state in 2018
+solar_by_state <- tidy_gen_state %>% 
+  mutate(mwh_numeric = as.numeric(gsub(",", "", generation_megawatthours))) %>% 
+  filter(energy_source %in% c("Total", "Solar Thermal and Photovoltaic")) %>% 
+  select(year, state, energy_source, generation_megawatthours, mwh_numeric) %>% 
+  group_by(state, energy_source, year) %>% 
+  summarize(energy_source_sum = sum(mwh_numeric))
+
+# Get solar as fraction of total for each state by putting into wide format
+solar_frac_state <- solar_by_state %>% 
+  pivot_wider(names_from = energy_source, 
+              values_from = energy_source_sum) %>% 
+  clean_names() %>% 
+  mutate(solar = replace_na(solar_thermal_and_photovoltaic, 0)) %>% 
+  mutate(solar_frac = (solar / total)) %>%
+  mutate(year = as.numeric(year)) 
+
+# put back into longer format for ggplot
+# total_out_of_solar_longer <- total_out_of_solar_state %>% 
+#   pivot_longer(cols = c(total, solar_thermal_and_photovoltaic, total_out_of_solar)) %>% 
+#   filter(name == "total_out_of_solar") %>% 
+#   filter(state %in% c("CA", "AZ"))
+
+# Make graph of solar compared to all other energy for CA in 2018
+
+ggplot(data = solar_frac_state, 
+       aes(x = year, 
+           y = solar_frac)) +
+  geom_line(aes(color = state)) +
+  theme_minimal() +
+  labs(x = "Year", 
+       y = "Solar as fraction of total generation")
+
+ggplot(data = solar_frac_state, 
+       aes(x = year, 
+           y = total)) +
+  geom_line(aes(color = state)) +
+  theme_minimal() +
+  labs(x = "Year", 
+       y = "Total Annual Solar Generation (Mwh)")
+
 
 # ---- User interface ----
 
@@ -181,7 +239,7 @@ ui <- navbarPage("It's Always Sunny in California",
                                                         selected = "CA")
                             ),
                             mainPanel("Main panel text!",
-                                      plotOutput(outputId = "diamond_plot2")
+                                      plotOutput(outputId = "solar_pct_plot")
                             )
                           )
                  )
@@ -192,7 +250,7 @@ ui <- navbarPage("It's Always Sunny in California",
 server <- function(input, output){
   
 
-  # Julia's tab
+  # Tab 2
   capacity_map_sf <- reactive({
     cap_county_sf %>% 
       filter(year %in% input$yearselection)
@@ -210,7 +268,7 @@ server <- function(input, output){
       labs(fill = "Total Capacity (MW)")
   })
   
-  # David's tab
+  # Tab 3
   solar_capacity <- reactive({
     solar_capacity_df %>% 
       filter(county %in% input$county_selection)
@@ -266,20 +324,25 @@ server <- function(input, output){
       cols_align(align = "center")
   })
   
-  # Placeholders
+  # Tab 4
   diamond_clarity <- reactive({
     diamonds %>% 
       filter(clarity %in% input$diamondclarity)
   })
   
-  state_selection <- reactive({
+  solar_frac <- reactive({
     solar_frac_state %>% 
       filter(state %in% input$state_selection)
   })
   
-  output$diamond_plot2 <- renderPlot({
-    ggplot(data = diamond_clarity(), aes(x = clarity, y = price)) +
-      geom_violin(aes(fill = clarity))
+  output$solar_pct_plot <- renderPlot({
+    ggplot(data = solar_frac(), 
+           aes(x = year, 
+               y = solar_frac)) +
+      geom_line(aes(color = state)) +
+      theme_minimal() +
+      labs(x = "Year", 
+           y = "Solar as fraction of total generation")
   })
   
 }
