@@ -141,18 +141,7 @@ solar_capacity_pct <- plants_location_join %>%
   group_by(county, ca_capacity) %>% 
   summarize(county_capacity = sum(capacity)) %>% 
   mutate(pct_total = county_capacity/ca_capacity)
-  
-library(gt)
-solar_capacity_pct %>% 
-  select(-ca_capacity) %>% 
-  gt() %>% 
-  tab_header(
-    title = "County statistics" #, 
-    # subtitle = "Subtitle" 
-  ) %>% 
-   fmt_percent(
-    columns = vars(pct_total),
-    decimals = 1)
+
 ```
 
 
@@ -184,6 +173,31 @@ homes_powered_df <- plants_location_join %>%
   group_by(county, total_homes_powered) %>%
   summarize(homes_powered = sum(capacity*homes_per_MW))
 
+
+part_table_df <- full_join(solar_capacity_pct, solar_cap_median) %>% 
+  select(-ca_capacity, -county_capacity)
+
+table_df <- full_join(part_table_df, homes_powered_df) %>% 
+  select(-total_homes_powered) %>% 
+  filter(county == "Los Angeles")
+
+library(gt)
+table_df %>%
+  gt(groupname_col = NULL) %>%
+  tab_header(
+    title = "County statistics" #,
+    # subtitle = "Subtitle"
+    ) %>% 
+  fmt_percent(
+    columns = vars(pct_total),
+    decimals = 1) %>%
+  cols_label(
+    county = "",
+    pct_total = "Percentage of CA solar",
+    median_cap = "Median plant capacity",
+    homes_powered = "Equivalent homes powered"
+  ) %>% 
+  cols_align(align = "center")
 
 ```
 
