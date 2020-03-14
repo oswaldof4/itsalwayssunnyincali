@@ -12,6 +12,7 @@ library(janitor)
 ```
 
 ```{r}
+
 gen_tidy_ca <- gen_by_plant %>% 
   clean_names() %>% 
   filter(state == "CA")
@@ -41,6 +42,18 @@ gen_resource_type <- gen_tidy_ca %>%
                    pri_energy_source == "Sun" ~ "solar", 
                    pri_energy_source == "GEO" ~ "geothermal", 
                    pri_energy_source == "WND" ~ "wind"))
+
+capacity_sum <- gen_resource_type %>% 
+  group_by(resource_type, year) %>% 
+  summarize(tot_capacity = sum(capacity))
+
+ggplot(data = capacity_sum, aes(x = year, 
+                                y = tot_capacity, 
+                                color = resource_type)) +
+  geom_line() +
+  theme_minimal()
+  
+
 ```
 
 
