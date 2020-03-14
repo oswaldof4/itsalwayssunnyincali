@@ -8,7 +8,6 @@ library(shiny)
 library(here)
 library(sf)
 library(gt)
-library(plotly)
 
 # ---- Load in raw data ----
 
