@@ -139,9 +139,9 @@ ui <- navbarPage("California solar electricity exploration",
                             sidebarPanel("Select year",
                                          sliderInput(inputId = "yearselection",
                                                      "(range of years)",
-                                                     min = 2001,
+                                                     min = 2008,
                                                      max = 2018,
-                                                     value = 2005
+                                                     value = 2018
                                          ) # Years 2001-2005 are all the same
                                          # Could we add individual points for plants?
                             ),
