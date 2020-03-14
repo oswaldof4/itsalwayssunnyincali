@@ -7,6 +7,7 @@ library(janitor)
 library(shiny)
 library(here)
 library(sf)
+library(gt)
 library(plotly)
 
 # ---- Load in raw data ----
@@ -108,6 +109,11 @@ homes_powered_df <- plants_location_join %>%
 
 # ---- Waldo's data wrangling ----
 
+part_table_df <- full_join(solar_capacity_pct, solar_cap_median) %>% 
+  select(-ca_capacity, -county_capacity)
+
+table_df <- full_join(part_table_df, homes_powered_df) %>% 
+  select(-total_homes_powered)
 
 # ---- User interface ----
 
@@ -150,11 +156,11 @@ ui <- navbarPage("California solar electricity exploration",
                                                         choices = c(unique(solar_capacity_df$county)),
                                                         multiple = T)
                             ),
-                            mainPanel(
-                              textOutput("selectedcounty"),
-                                      plotOutput(outputId = "solar_capacity_plot")
+                            mainPanel(gt_output(outputId = "gt")
                             )
-                          )
+                          ),
+                          textOutput("selectedcounty"),
+                          plotOutput(outputId = "solar_capacity_plot"),
                  ),
                  tabPanel("Low income solar",
                           h2("Low income solar participation by county"),
@@ -223,7 +229,32 @@ server <- function(input, output){
       theme(legend.justification = c(0,1),
             legend.position = c(0.1,0.9),
             legend.background = element_blank(),
-            legend.key = element_blank())
+            legend.key = element_blank()) +
+      facet_wrap(~county)
+  })
+  
+  county_stat <- reactive({
+    table_df %>% 
+      filter(county %in% input$county_selection)
+  })
+  
+  output$gt <- render_gt({
+    county_stat() %>% 
+      gt(groupname_col = NULL) %>%
+      tab_header(
+        title = "County statistics" #,
+        # subtitle = "Subtitle"
+      ) %>% 
+      fmt_percent(
+        columns = vars(pct_total),
+        decimals = 1) %>%
+      cols_label(
+        county = "",
+        pct_total = "Percentage of CA solar",
+        median_cap = "Median plant capacity",
+        homes_powered = "Equivalent homes powered"
+      ) %>% 
+      cols_align(align = "center")
   })
   
   # Placeholders
