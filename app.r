@@ -162,7 +162,7 @@ ui <- navbarPage("California solar electricity exploration",
                                                         selected = "Santa Barbara")
                             ),
                             mainPanel(gt_output(outputId = "gt")
-                            )
+                            ) # Maybe we should add largest capacity plant + name?
                           ),
                           plotOutput(outputId = "solar_capacity_plot"),
                  ),
@@ -219,7 +219,6 @@ server <- function(input, output){
       geom_col(color = alpha("black",.1), aes(fill = annual_count), alpha = 1, show.legend = TRUE) +
       scale_fill_continuous(low = "yellow", high = "orange") +
       labs(title = "Solar capacity (2008-2018)",
-           # add to title **reactive text** "in selected county name" 
            x = "Year",
            y = "Cumulative capacity installed (MW)",
            fill = "Count of installations") +
@@ -227,7 +226,7 @@ server <- function(input, output){
       scale_x_continuous(lim = c(2008,2019), expand = c(0,0), breaks = seq(2008, 2018, 2)) +
       theme_classic() +
       theme(legend.justification = c(0,1),
-            legend.position = c(0.1,0.9),
+            legend.position = c(0.01,0.95),
             legend.background = element_blank(),
             legend.key = element_blank()) +
       facet_wrap(~county)
@@ -248,6 +247,11 @@ server <- function(input, output){
       fmt_percent(
         columns = vars(pct_total),
         decimals = 1) %>%
+      fmt_number(
+        columns = vars(homes_powered),
+        decimals = 0,
+        use_seps = T
+      ) %>% 
       cols_label(
         county = "",
         pct_total = "Percentage of CA solar",
