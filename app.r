@@ -166,14 +166,19 @@ ui <- navbarPage("It's Always Sunny in California",
                           ),
                           plotOutput(outputId = "solar_capacity_plot"),
                  ),
-                 tabPanel("Low income solar",
-                          h2("Low income solar participation by county"),
+                 tabPanel("CA vs. other states",
+                          h2("Solar statistics by state"),
                           sidebarLayout(
                             sidebarPanel("Some text!",
                                          checkboxGroupInput(inputId = "diamondclarity",
                                                             "Choose some!",
                                                             choices = c(levels(diamonds$clarity))
-                                         )
+                                         ),
+                                         selectizeInput(inputId = "state_selection",
+                                                        "Choose a state:",
+                                                        choices = c(unique(solar_frac_state$state)),
+                                                        multiple = T,
+                                                        selected = "CA")
                             ),
                             mainPanel("Main panel text!",
                                       plotOutput(outputId = "diamond_plot2")
@@ -265,6 +270,11 @@ server <- function(input, output){
   diamond_clarity <- reactive({
     diamonds %>% 
       filter(clarity %in% input$diamondclarity)
+  })
+  
+  state_selection <- reactive({
+    solar_frac_state %>% 
+      filter(state %in% input$state_selection)
   })
   
   output$diamond_plot2 <- renderPlot({
