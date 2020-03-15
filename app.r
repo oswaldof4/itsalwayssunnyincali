@@ -182,7 +182,7 @@ ui <- navbarPage("It's Always Sunny in California",
                                          p("Here's where we would write about what the app is, what it does, and how to use it.")
                             ),
                             mainPanel(img(src="featured_image.jpg", height = "75%", width = "75%", style = 'display: block;'),
-                                      p("Topaz Solar Farm in San Luis Obispo county. One of the largest solar plants in the world, it was completed in 2014, cost $2.5 billion to build, and has a capacity of 550 megawatts. Photo credit: GreenCity Times")
+                                      p("Topaz Solar Farm in San Luis Obispo county. One of the largest solar plants in the world, it was completed in 2014, cost $2.5 billion to build, and has a capacity of 550 megawatts. Photo credit: First Solar via GigaOm")
                             ) 
                           ),
                           p("Here's where the citations will go."),
