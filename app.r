@@ -179,7 +179,7 @@ ui <- navbarPage("It's Always Sunny in California",
                  tabPanel("Home",
                           sidebarLayout(
                             sidebarPanel(h1("California solar exploration"),
-                                         p("Here's where we would write about what the app is, what it does, and how to use it.")
+                                         p("The United States currently has more than 37 gigawatts of major solar projects in operation and California is home to approximately 33% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1MW or more that are located within California or within a control area with end users inside California. This app allows the user to explore where these solar plants are located county by county.")
                             ),
                             mainPanel(img(src="featured_image.jpg", height = "75%", width = "100%", style = 'display: block;'),
                                       p("Topaz Solar Farm in San Luis Obispo county. One of the largest solar plants in the world, it was completed in 2014, cost $2.5 billion to build, and has a capacity of 550 megawatts. Photo credit: First Solar via GigaOm")
@@ -210,7 +210,7 @@ ui <- navbarPage("It's Always Sunny in California",
                  ),
                  tabPanel("Solar electricity generation by county",
                           h2("Cumulative megawatts of solar capacity per county from 2008-2018."),
-                          p("The California Energy Commission collects data from power plants with a total nameplate capacity of 1MW or more that are located within California or within a control area with end users inside California."),
+                          p(""),
                           sidebarLayout(
                             sidebarPanel("",
                                          selectizeInput(inputId = "county_selection",
