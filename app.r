@@ -128,7 +128,9 @@ table_df <- full_join(part_table_df, homes_powered_df) %>%
 # Make tidy dataframe with generation by state, resource and year
 
 tidy_gen_state <- annual_generation_state %>% 
-  clean_names()
+  clean_names() %>% 
+  mutate(state = str_replace(state, "US-Total", "United States")) %>%
+  mutate(state = str_replace(state, "US-TOTAL", "United States"))
 
 # Get total mwh generation of solar and total for each state in 2018
 solar_by_state <- tidy_gen_state %>% 
@@ -341,7 +343,8 @@ server <- function(input, output){
     ggplot(data = solar_frac(), 
            aes(x = year, 
                y = solar_frac)) +
-      geom_line(aes(color = state)) +
+      geom_line(aes(color = state),
+                size = 1) +
       theme_minimal() +
       labs(x = "Year", 
            y = "Solar as fraction of total generation")
