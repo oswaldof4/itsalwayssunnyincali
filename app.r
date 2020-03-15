@@ -203,8 +203,7 @@ ui <- navbarPage("It's Always Sunny in California",
                                                      min = 2008,
                                                      max = 2018,
                                                      value = 2008
-                                         ) # Years 2001-2005 are all the same
-                                         # Could we add individual points for plants?
+                                         )
                             ),
                             mainPanel("",
                                       plotOutput(outputId = "capacity_map_plot")
