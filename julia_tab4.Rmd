@@ -95,6 +95,11 @@ solar_frac_state <- solar_by_state %>%
   mutate(solar_frac = (solar / total)) %>%
   mutate(year = as.numeric(year)) 
 
+solar_top_10 <- solar_frac_state %>% 
+  filter(year == 2018) %>% 
+  arrange(-solar_frac) %>% 
+  head(10)
+
 # put back into longer format for ggplot
 # total_out_of_solar_longer <- total_out_of_solar_state %>% 
 #   pivot_longer(cols = c(total, solar_thermal_and_photovoltaic, total_out_of_solar)) %>% 
