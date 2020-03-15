@@ -179,13 +179,15 @@ ui <- navbarPage("It's Always Sunny in California",
                  tabPanel("Home",
                           sidebarLayout(
                             sidebarPanel(h1("California solar exploration"),
-                                         p("The United States currently has more than 37 gigawatts of major solar projects in operation and California is home to approximately 33% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1MW or more that are located within California or within a control area with end users inside California. This app allows the user to explore where these solar plants are located county by county.")
+                                         p("The United States currently has more than 27 gigawatts of utility scale solar projects in operation and California is home to approximately 40% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1MW or more that are located within California or within a control area with end users inside California. This web application allows the user to explore where these solar plants are located county by county.")
                             ),
                             mainPanel(img(src="featured_image_topaz.jpg", height = "75%", width = "100%", style = 'display: block;'),
                                       p("Topaz Solar Farm in San Luis Obispo county. One of the largest solar plants in the world, it was completed in 2014, cost $2.5 billion to build, and has a capacity of 550 megawatts. Photo credit: First Solar via GigaOm")
                             ) 
                           ),
-                          p("Here's where the citations will go."),
+                          p("Electric Power Annual 2018. U.S. Energy Information Administration. October 2019"),
+                          p("Fehrenbacher, K., 2015. Special report: How the rise of a mega solar panel farm shows us the future of energy. GigaOm. January 2015. https://gigaom.com/2015/01/20/a-special-report-the-rise-of-a-mega-solar-panel-farm-why-its-important/."
+                          ),
                           plotOutput(outputId = "diamond_plot")
                  ),
                  tabPanel("Timelapse map of solar capacity by county",
