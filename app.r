@@ -157,7 +157,13 @@ solar_frac_state <- solar_by_state %>%
   clean_names() %>% 
   mutate(solar = replace_na(solar_thermal_and_photovoltaic, 0)) %>% 
   mutate(solar_frac = (solar / total)) %>%
-  mutate(year = as.numeric(year)) 
+  mutate(year = as.numeric(year))  %>% 
+  filter(year %in% c(2008:2018))
+
+# Get top 10 and US
+solar_top_10 <- solar_frac_state %>% 
+  filter(year == 2018) %>% 
+  filter(state %in% c("CA", "NV", "UT", "VT", "AZ", "NC", "NM", "MA", "ID", "CO", "United States"))
 
 # put back into longer format for ggplot
 # total_out_of_solar_longer <- total_out_of_solar_state %>% 
@@ -197,9 +203,12 @@ ui <- navbarPage("It's Always Sunny in California",
                                       p("Topaz Solar Farm in San Luis Obispo county. One of the largest solar plants in the world, it was completed in 2014, cost $2.5 billion to build, and has a capacity of 550 megawatts. Photo credit: First Solar via GigaOm")
                             ) 
                           ),
+                          h2(HTML("<strong>Citations</strong>")),
                           p("Electric Power Annual 2018. U.S. Energy Information Administration. October 2019"),
                           p("Fehrenbacher, K., 2015. Special report: How the rise of a mega solar panel farm shows us the future of energy. GigaOm. January 2015. https://gigaom.com/2015/01/20/a-special-report-the-rise-of-a-mega-solar-panel-farm-why-its-important/."
                           ),
+                          p(HTML("Data: California Jurisdictional Dams <br> Accessed from: https://hub.arcgis.com/datasets/98a09bec89c84681ae1701a2eb62f599_0/data?geometry=-150.074%2C31.096%2C-87.54%2C43.298&page=10")),
+                          p(HTML("Data: California Energy Commission <br> Accessed from https://ww2.energy.ca.gov/almanac/electricity_data/web_qfer/index_cms.php")),
                           plotOutput(outputId = "diamond_plot")
                  ),
                  tabPanel("Timelapse map of solar capacity by county",
@@ -214,8 +223,7 @@ ui <- navbarPage("It's Always Sunny in California",
                                                      min = 2008,
                                                      max = 2018,
                                                      value = 2008
-                                         ) # Years 2001-2005 are all the same
-                                         # Could we add individual points for plants?
+                                         )
                             ),
                             mainPanel("",
                                       plotOutput(outputId = "capacity_map_plot")
@@ -241,18 +249,13 @@ ui <- navbarPage("It's Always Sunny in California",
                  tabPanel("CA vs. other states",
                           h2("Solar statistics by state"),
                           sidebarLayout(
-                            sidebarPanel("Some text!",
-                                         checkboxGroupInput(inputId = "diamondclarity",
-                                                            "Choose some!",
-                                                            choices = c(levels(diamonds$clarity))
-                                         ),
-                                         selectizeInput(inputId = "state_selection",
+                            sidebarPanel(checkboxGroupInput(inputId = "state_selection",
                                                         "Choose a state:",
-                                                        choices = c(unique(solar_frac_state$state)),
-                                                        multiple = T,
-                                                        selected = "CA")
+                                                        choices = c(unique(solar_top_10$state)),
+                                                      #  multiple = T,
+                                                        selected = c("United States", "CA"))
                             ),
-                            mainPanel("Main panel text!",
+                            mainPanel("This graph displays how solar generation has grown over time as a fraction of total energy generation from all energy types. Select a state or region to see what fraction of its total energy generation comes from solar.",
                                       plotOutput(outputId = "solar_pct_plot")
                             )
                           )
@@ -356,7 +359,9 @@ server <- function(input, output){
       geom_line(aes(color = state)) +
       theme_minimal() +
       labs(x = "Year", 
-           y = "Solar as fraction of total generation")
+           y = "Solar as fraction of total generation", 
+           color = "State/Region") +
+      scale_x_continuous(breaks = seq(2008, 2018, 2))
   })
   
 }
