@@ -218,7 +218,7 @@ ui <- navbarPage("It's Always Sunny in California",
                           h2("Map of solar capacity by county"),
                           p("Solar capacity by county indicated by shading for the
                             selected time span. Darker shaded counties indicate more
-                            solar capacity. Hover cursor over county to view exact capacity."),
+                            solar capacity."),
                           sidebarLayout(
                             sidebarPanel(sliderInput(inputId = "yearselection",
                                                      "Select Year",
@@ -235,7 +235,7 @@ ui <- navbarPage("It's Always Sunny in California",
                  ),
                  tabPanel("Solar electricity generation by county",
                           h2("Cumulative megawatts of solar capacity per county from 2008-2018."),
-                          p(""),
+                          p("Choose additional counties to compare total capacity installed, number of plants, and summary statistics."),
                           sidebarLayout(
                             sidebarPanel("",
                                          selectizeInput(inputId = "county_selection",
@@ -253,7 +253,7 @@ ui <- navbarPage("It's Always Sunny in California",
                           h2("Solar as a percentage of statewide power generation"),
                           sidebarLayout(
                             sidebarPanel(checkboxGroupInput(inputId = "state_selection",
-                                                        "Choose a state:",
+                                                        "Choose from the top ten solar producing states:",
                                                         choices = c(unique(solar_top_10$state)),
                                                       #  multiple = T,
                                                         selected = c("United States", "CA"))
@@ -308,7 +308,7 @@ server <- function(input, output){
       scale_x_continuous(lim = c(2008,2019), expand = c(0,0), breaks = seq(2008, 2018, 2)) +
       theme_classic() +
       theme(legend.justification = c(0,1),
-            legend.position = c(0.01,0.95),
+            legend.position = c(0.01,0.97),
             legend.background = element_blank(),
             legend.key = element_blank()) +
       facet_wrap(~county)
