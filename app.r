@@ -79,13 +79,24 @@ cap_county_sf <- st_as_sf(cap_county_join)
 # ---- Tab 3 data wrangling ----
 
 # total operational capacity for each year
+
+# solar_capacity_df <- plants_location_join %>% 
+#   select(-resource_id, -resource_id_name) %>%
+#   filter(status == "OP") %>% 
+#   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
+#   group_by(year, county, plant_name, ) %>% 
+#   summarize(total_capacity = (sum(capacity))) %>% 
+#   mutate(annual_count = n())
+
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
-  mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
-  group_by(year, county, plant_name, ) %>% 
-  summarize(total_capacity = (sum(capacity))) %>% 
-  mutate(annual_count = n())
+  mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>%
+  group_by(year, plant_name, county) %>% 
+  summarize(total_capacity = sum(capacity)) %>% 
+  mutate(annual_count = n()) %>% 
+  group_by(year, county) %>% 
+  summarize(total_capacity = sum(total_capacity), annual_count = sum(annual_count))
 
 
 # % of total California solar capacity in 2018
@@ -145,7 +156,13 @@ solar_frac_state <- solar_by_state %>%
   clean_names() %>% 
   mutate(solar = replace_na(solar_thermal_and_photovoltaic, 0)) %>% 
   mutate(solar_frac = (solar / total)) %>%
-  mutate(year = as.numeric(year)) 
+  mutate(year = as.numeric(year))  %>% 
+  filter(year %in% c(2008:2018))
+
+# Get top 10 and US
+solar_top_10 <- solar_frac_state %>% 
+  filter(year == 2018) %>% 
+  filter(state %in% c("CA", "NV", "UT", "VT", "AZ", "NC", "NM", "MA", "ID", "CO", "United States"))
 
 # put back into longer format for ggplot
 # total_out_of_solar_longer <- total_out_of_solar_state %>% 
@@ -179,7 +196,7 @@ ui <- navbarPage("It's Always Sunny in California",
                  tabPanel("Home",
                           sidebarLayout(
                             sidebarPanel(h1("California solar exploration"),
-                                         p("The United States currently has more than 27 gigawatts of utility scale solar projects in operation and California is home to approximately 40% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1MW or more that are located within California or within a control area with end users inside California. This web application allows the user to explore where these solar plants are located county by county.")
+                                         p("The United States currently has more than 27 gigawatts of utility scale solar projects in operation. California is home to approximately 40% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1 megawatt or more that are located within California or within a control area with end users inside California. This web application allows the user to explore where these solar plants are located county by county. It also allows for comparisons between counties and between states.")
                             ),
                             mainPanel(img(src="featured_image_topaz.jpg", height = "75%", width = "100%", style = 'display: block;'),
                                       p("Topaz Solar Farm in San Luis Obispo county. One of the largest solar plants in the world, it was completed in 2014, cost $2.5 billion to build, and has a capacity of 550 megawatts. Photo credit: First Solar via GigaOm")
@@ -230,20 +247,15 @@ ui <- navbarPage("It's Always Sunny in California",
                           plotOutput(outputId = "solar_capacity_plot"),
                  ),
                  tabPanel("CA vs. other states",
-                          h2("Solar statistics by state"),
+                          h2("Solar as a percentage of statewide power generation"),
                           sidebarLayout(
-                            sidebarPanel("Some text!",
-                                         checkboxGroupInput(inputId = "diamondclarity",
-                                                            "Choose some!",
-                                                            choices = c(levels(diamonds$clarity))
-                                         ),
-                                         selectizeInput(inputId = "state_selection",
+                            sidebarPanel(checkboxGroupInput(inputId = "state_selection",
                                                         "Choose a state:",
-                                                        choices = c(unique(solar_frac_state$state)),
-                                                        multiple = T,
-                                                        selected = "CA")
+                                                        choices = c(unique(solar_top_10$state)),
+                                                      #  multiple = T,
+                                                        selected = c("United States", "CA"))
                             ),
-                            mainPanel("Main panel text!",
+                            mainPanel("This graph displays how solar generation has grown over time as a fraction of total energy generation from all energy types. Select a state or region to see what fraction of its total energy generation comes from solar.",
                                       plotOutput(outputId = "solar_pct_plot")
                             )
                           )
@@ -282,8 +294,7 @@ server <- function(input, output){
   output$solar_capacity_plot <- renderPlot({
     ggplot(data = solar_capacity(),
            aes(x = year,
-               y = total_capacity,
-               group = plant_name)) +
+               y = total_capacity)) +
       geom_col(color = alpha("black",.1), aes(fill = annual_count), alpha = 1, show.legend = TRUE) +
       scale_fill_continuous(low = "yellow", high = "orange") +
       labs(title = "Solar capacity (2008-2018)",
@@ -347,7 +358,9 @@ server <- function(input, output){
       geom_line(aes(color = state)) +
       theme_minimal() +
       labs(x = "Year", 
-           y = "Solar as fraction of total generation")
+           y = "Solar as fraction of total generation", 
+           color = "State/Region") +
+      scale_x_continuous(breaks = seq(2008, 2018, 2))
   })
   
 }
