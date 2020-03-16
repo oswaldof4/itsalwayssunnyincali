@@ -225,7 +225,8 @@ ui <- navbarPage("It's Always Sunny in California",
                                                      "(range of years)",
                                                      min = 2008,
                                                      max = 2018,
-                                                     value = 2008
+                                                     value = 2008,
+                                                     sep = ""
                                          )
                             ),
                             mainPanel("",
