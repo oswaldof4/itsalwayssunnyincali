@@ -79,13 +79,25 @@ cap_county_sf <- st_as_sf(cap_county_join)
 # ---- Tab 3 data wrangling ----
 
 # total operational capacity for each year
+
+# solar_capacity_df <- plants_location_join %>% 
+#   select(-resource_id, -resource_id_name) %>%
+#   filter(status == "OP") %>% 
+#   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
+#   group_by(year, county, plant_name, ) %>% 
+#   summarize(total_capacity = (sum(capacity))) %>% 
+#   mutate(annual_count = n())
+
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
-  group_by(year, county, plant_name, ) %>% 
-  summarize(total_capacity = (sum(capacity))) %>% 
-  mutate(annual_count = n())
+  filter(county == "San Bernardino") %>% 
+  group_by(year, plant_name) %>% 
+  summarize(total_capacity = sum(capacity)) %>% 
+  mutate(annual_count = n()) %>% 
+  group_by(year) %>% 
+  summarize(total_capacity = sum(total_capacity), annual_count = sum(annual_count))
 
 
 # % of total California solar capacity in 2018
