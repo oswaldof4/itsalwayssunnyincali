@@ -71,11 +71,13 @@ Refine df for line graph of solar capacity
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
-  filter(county == "San Bernardino") %>% 
   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
+  filter(county == "San Bernardino") %>% 
   group_by(year, plant_name) %>% 
-  summarize(total_capacity = (sum(capacity))) %>% 
-  mutate(annual_count = n())
+  summarize(total_capacity = sum(capacity)) %>% 
+  mutate(annual_count = n()) %>% 
+  group_by(year) %>% 
+  summarize(total_capacity = sum(total_capacity), annual_count = sum(annual_count))
 
 #solar_cap_df2 <- transform(solar_capacity_df, plant_name = reorder(plant_name, total_capacity))
 
@@ -96,9 +98,8 @@ Graph solar capacity overtime
 # remember to add () after df since reactive
 solar_capacity_plot <- ggplot(data = solar_capacity_df,
                                   aes(x = year,
-                                      y = total_capacity,
-                                      group = plant_name)) +
-  geom_col(color = alpha("black",.1), aes(fill = annual_count), alpha = 1, show.legend = TRUE) +
+                                      y = total_capacity)) +
+  geom_col(color = alpha("black",0), aes(fill = annual_count), alpha = 1, show.legend = TRUE) +
   scale_fill_continuous(low = "yellow", high = "orange") +
   labs(title = "Solar capacity (2008-2018)",
        # add to title **reactive text** "in selected county name" 

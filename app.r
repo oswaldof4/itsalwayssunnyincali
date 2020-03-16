@@ -91,12 +91,11 @@ cap_county_sf <- st_as_sf(cap_county_join)
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
-  mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
-  filter(county == "San Bernardino") %>% 
-  group_by(year, plant_name) %>% 
+  mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>%
+  group_by(year, plant_name, county) %>% 
   summarize(total_capacity = sum(capacity)) %>% 
   mutate(annual_count = n()) %>% 
-  group_by(year) %>% 
+  group_by(year, county) %>% 
   summarize(total_capacity = sum(total_capacity), annual_count = sum(annual_count))
 
 
@@ -294,8 +293,7 @@ server <- function(input, output){
   output$solar_capacity_plot <- renderPlot({
     ggplot(data = solar_capacity(),
            aes(x = year,
-               y = total_capacity,
-               group = plant_name)) +
+               y = total_capacity)) +
       geom_col(color = alpha("black",.1), aes(fill = annual_count), alpha = 1, show.legend = TRUE) +
       scale_fill_continuous(low = "yellow", high = "orange") +
       labs(title = "Solar capacity (2008-2018)",
