@@ -189,7 +189,10 @@ ui <- navbarPage("It's Always Sunny in California",
                           p("Electric Power Annual 2018. U.S. Energy Information Administration. October 2019"),
                           p("Fehrenbacher, K., 2015. Special report: How the rise of a mega solar panel farm shows us the future of energy. GigaOm. January 2015. https://gigaom.com/2015/01/20/a-special-report-the-rise-of-a-mega-solar-panel-farm-why-its-important/."
                           ),
-                          p("California Energy Commission. Data from https://ww2.energy.ca.gov/almanac/electricity_data/web_qfer/index_cms.php"),
+                          p("Data: California Jurisdictional Dams 
+                            Accessed from: https://hub.arcgis.com/datasets/98a09bec89c84681ae1701a2eb62f599_0/data?geometry=-150.074%2C31.096%2C-87.54%2C43.298&page=10"),
+                          p("Data: California Energy Commission
+                            Accessed from https://ww2.energy.ca.gov/almanac/electricity_data/web_qfer/index_cms.php"),
                           plotOutput(outputId = "diamond_plot")
                  ),
                  tabPanel("Timelapse map of solar capacity by county",
