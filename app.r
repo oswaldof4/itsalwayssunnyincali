@@ -246,7 +246,7 @@ ui <- navbarPage("It's Always Sunny in California",
                           plotOutput(outputId = "solar_capacity_plot"),
                  ),
                  tabPanel("CA vs. other states",
-                          h2("Solar statistics by state"),
+                          h2("Solar as a percentage of statewide power generation"),
                           sidebarLayout(
                             sidebarPanel(checkboxGroupInput(inputId = "state_selection",
                                                         "Choose a state:",
