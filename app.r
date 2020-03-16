@@ -128,9 +128,7 @@ table_df <- full_join(part_table_df, homes_powered_df) %>%
 # Make tidy dataframe with generation by state, resource and year
 
 tidy_gen_state <- annual_generation_state %>% 
-  clean_names() %>% 
-  mutate(state = str_replace(state, "US-Total", "United States")) %>%
-  mutate(state = str_replace(state, "US-TOTAL", "United States"))
+  clean_names()
 
 # Get total mwh generation of solar and total for each state in 2018
 solar_by_state <- tidy_gen_state %>% 
@@ -191,6 +189,7 @@ ui <- navbarPage("It's Always Sunny in California",
                           p("Electric Power Annual 2018. U.S. Energy Information Administration. October 2019"),
                           p("Fehrenbacher, K., 2015. Special report: How the rise of a mega solar panel farm shows us the future of energy. GigaOm. January 2015. https://gigaom.com/2015/01/20/a-special-report-the-rise-of-a-mega-solar-panel-farm-why-its-important/."
                           ),
+                          p("California Energy Commission. Data from https://ww2.energy.ca.gov/almanac/electricity_data/web_qfer/index_cms.php"),
                           plotOutput(outputId = "diamond_plot")
                  ),
                  tabPanel("Timelapse map of solar capacity by county",
@@ -343,8 +342,7 @@ server <- function(input, output){
     ggplot(data = solar_frac(), 
            aes(x = year, 
                y = solar_frac)) +
-      geom_line(aes(color = state),
-                size = 1) +
+      geom_line(aes(color = state)) +
       theme_minimal() +
       labs(x = "Year", 
            y = "Solar as fraction of total generation")
