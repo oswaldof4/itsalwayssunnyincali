@@ -139,7 +139,10 @@ table_df <- full_join(part_table_df, homes_powered_df) %>%
 # Make tidy dataframe with generation by state, resource and year
 
 tidy_gen_state <- annual_generation_state %>% 
-  clean_names()
+  clean_names() %>% 
+  mutate(state = str_replace(state, "US-Total", "United States")) %>%
+  mutate(state = str_replace(state, "US-TOTAL", "United States"))
+
 
 # Get total mwh generation of solar and total for each state in 2018
 solar_by_state <- tidy_gen_state %>% 
@@ -196,7 +199,7 @@ ui <- navbarPage("It's Always Sunny in California",
                  tabPanel("Home",
                           sidebarLayout(
                             sidebarPanel(h1("California solar exploration"),
-                                         p("The United States currently has more than 27 gigawatts of utility scale solar projects in operation. California is home to approximately 40% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1 megawatt or more that are located within California or within a control area with end users inside California. This web application allows the user to explore where these solar plants are located county by county. It also allows for comparisons between counties and between states.")
+                                         p("The United States currently has more than 27 gigawatts of utility scale solar projects in operation. California is home to approximately 40% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1 megawatt or more that are located within California or within a control area with end users inside California. This web application allows the user to explore where these solar plants are located county by county. It also allows for comparisons between counties and top U.S. states.")
                             ),
                             mainPanel(img(src="featured_image_topaz.jpg", height = "75%", width = "100%", style = 'display: block;'),
                                       p("Topaz Solar Farm in San Luis Obispo county. One of the largest solar plants in the world, it was completed in 2014, cost $2.5 billion to build, and has a capacity of 550 megawatts. Photo credit: First Solar via GigaOm")
