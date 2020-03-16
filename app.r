@@ -218,7 +218,7 @@ ui <- navbarPage("It's Always Sunny in California",
                           h2("Map of solar capacity by county"),
                           p("Solar capacity by county indicated by shading for the
                             selected time span. Darker shaded counties indicate more
-                            solar capacity. Hover cursor over county to view exact capacity."),
+                            solar capacity."),
                           sidebarLayout(
                             sidebarPanel("Select year",
                                          sliderInput(inputId = "yearselection",
@@ -236,7 +236,7 @@ ui <- navbarPage("It's Always Sunny in California",
                  ),
                  tabPanel("Solar electricity generation by county",
                           h2("Cumulative megawatts of solar capacity per county from 2008-2018."),
-                          p(""),
+                          p("Choose additional counties to compare."),
                           sidebarLayout(
                             sidebarPanel("",
                                          selectizeInput(inputId = "county_selection",
