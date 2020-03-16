@@ -253,7 +253,7 @@ ui <- navbarPage("It's Always Sunny in California",
                           h2("Solar as a percentage of statewide power generation"),
                           sidebarLayout(
                             sidebarPanel(checkboxGroupInput(inputId = "state_selection",
-                                                        "Choose a state:",
+                                                        "Choose from the top ten solar producing states:",
                                                         choices = c(unique(solar_top_10$state)),
                                                       #  multiple = T,
                                                         selected = c("United States", "CA"))
