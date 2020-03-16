@@ -79,13 +79,24 @@ cap_county_sf <- st_as_sf(cap_county_join)
 # ---- Tab 3 data wrangling ----
 
 # total operational capacity for each year
+
+# solar_capacity_df <- plants_location_join %>% 
+#   select(-resource_id, -resource_id_name) %>%
+#   filter(status == "OP") %>% 
+#   mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
+#   group_by(year, county, plant_name, ) %>% 
+#   summarize(total_capacity = (sum(capacity))) %>% 
+#   mutate(annual_count = n())
+
 solar_capacity_df <- plants_location_join %>% 
   select(-resource_id, -resource_id_name) %>%
   filter(status == "OP") %>% 
-  mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>% 
-  group_by(year, county, plant_name, ) %>% 
-  summarize(total_capacity = (sum(capacity))) %>% 
-  mutate(annual_count = n())
+  mutate(plant_name = fct_reorder(plant_name, desc(capacity))) %>%
+  group_by(year, plant_name, county) %>% 
+  summarize(total_capacity = sum(capacity)) %>% 
+  mutate(annual_count = n()) %>% 
+  group_by(year, county) %>% 
+  summarize(total_capacity = sum(total_capacity), annual_count = sum(annual_count))
 
 
 # % of total California solar capacity in 2018
@@ -188,7 +199,7 @@ ui <- navbarPage("It's Always Sunny in California",
                  tabPanel("Home",
                           sidebarLayout(
                             sidebarPanel(h1("California solar exploration"),
-                                         p("The United States currently has more than 27 gigawatts of utility scale solar projects in operation and California is home to approximately 40% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1MW or more that are located within California or within a control area with end users inside California. This web application allows the user to explore where these solar plants are located county by county.")
+                                         p("The United States currently has more than 27 gigawatts of utility scale solar projects in operation. California is home to approximately 40% of them. The California Energy Commission collects data from power plants with a total nameplate capacity of 1 megawatt or more that are located within California or within a control area with end users inside California. This web application allows the user to explore where these solar plants are located county by county. It also allows for comparisons between counties and U.S. states.")
                             ),
                             mainPanel(img(src="featured_image_topaz.jpg", height = "75%", width = "100%", style = 'display: block;'),
                                       p("Topaz Solar Farm in San Luis Obispo county. One of the largest solar plants in the world, it was completed in 2014, cost $2.5 billion to build, and has a capacity of 550 megawatts. Photo credit: First Solar via GigaOm")
@@ -198,8 +209,9 @@ ui <- navbarPage("It's Always Sunny in California",
                           p("Electric Power Annual 2018. U.S. Energy Information Administration. October 2019"),
                           p("Fehrenbacher, K., 2015. Special report: How the rise of a mega solar panel farm shows us the future of energy. GigaOm. January 2015. https://gigaom.com/2015/01/20/a-special-report-the-rise-of-a-mega-solar-panel-farm-why-its-important/."
                           ),
-                          p(HTML("Data: California Jurisdictional Dams <br> Accessed from: https://hub.arcgis.com/datasets/98a09bec89c84681ae1701a2eb62f599_0/data?geometry=-150.074%2C31.096%2C-87.54%2C43.298&page=10")),
+                          p(HTML("Data: California Jurisdictional Dams <br> Accessed from https://hub.arcgis.com/datasets/98a09bec89c84681ae1701a2eb62f599_0/data?geometry=-150.074%2C31.096%2C-87.54%2C43.298&page=10")),
                           p(HTML("Data: California Energy Commission <br> Accessed from https://ww2.energy.ca.gov/almanac/electricity_data/web_qfer/index_cms.php")),
+                          p(HTML("Data: Net Generation by State by Type of Producer by Energy Source <br> Accessed from https://www.eia.gov/electricity/data/state/")),
                           plotOutput(outputId = "diamond_plot")
                  ),
                  tabPanel("Timelapse map of solar capacity by county",
@@ -238,7 +250,7 @@ ui <- navbarPage("It's Always Sunny in California",
                           plotOutput(outputId = "solar_capacity_plot"),
                  ),
                  tabPanel("CA vs. other states",
-                          h2("Solar statistics by state"),
+                          h2("Solar as a percentage of statewide power generation"),
                           sidebarLayout(
                             sidebarPanel(checkboxGroupInput(inputId = "state_selection",
                                                         "Choose a state:",
@@ -285,8 +297,7 @@ server <- function(input, output){
   output$solar_capacity_plot <- renderPlot({
     ggplot(data = solar_capacity(),
            aes(x = year,
-               y = total_capacity,
-               group = plant_name)) +
+               y = total_capacity)) +
       geom_col(color = alpha("black",.1), aes(fill = annual_count), alpha = 1, show.legend = TRUE) +
       scale_fill_continuous(low = "yellow", high = "orange") +
       labs(title = "Solar capacity (2008-2018)",
