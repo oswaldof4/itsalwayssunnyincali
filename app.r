@@ -128,9 +128,7 @@ table_df <- full_join(part_table_df, homes_powered_df) %>%
 # Make tidy dataframe with generation by state, resource and year
 
 tidy_gen_state <- annual_generation_state %>% 
-  clean_names() %>% 
-  mutate(state = str_replace(state, "US-Total", "United States")) %>%
-  mutate(state = str_replace(state, "US-TOTAL", "United States"))
+  clean_names()
 
 # Get total mwh generation of solar and total for each state in 2018
 solar_by_state <- tidy_gen_state %>% 
@@ -197,6 +195,8 @@ ui <- navbarPage("It's Always Sunny in California",
                           p("Electric Power Annual 2018. U.S. Energy Information Administration. October 2019"),
                           p("Fehrenbacher, K., 2015. Special report: How the rise of a mega solar panel farm shows us the future of energy. GigaOm. January 2015. https://gigaom.com/2015/01/20/a-special-report-the-rise-of-a-mega-solar-panel-farm-why-its-important/."
                           ),
+                          p(HTML("Data: California Jurisdictional Dams <br> Accessed from: https://hub.arcgis.com/datasets/98a09bec89c84681ae1701a2eb62f599_0/data?geometry=-150.074%2C31.096%2C-87.54%2C43.298&page=10")),
+                          p(HTML("Data: California Energy Commission <br> Accessed from https://ww2.energy.ca.gov/almanac/electricity_data/web_qfer/index_cms.php")),
                           plotOutput(outputId = "diamond_plot")
                  ),
                  tabPanel("Timelapse map of solar capacity by county",
@@ -211,8 +211,7 @@ ui <- navbarPage("It's Always Sunny in California",
                                                      min = 2008,
                                                      max = 2018,
                                                      value = 2008
-                                         ) # Years 2001-2005 are all the same
-                                         # Could we add individual points for plants?
+                                         )
                             ),
                             mainPanel("",
                                       plotOutput(outputId = "capacity_map_plot")
@@ -345,8 +344,7 @@ server <- function(input, output){
     ggplot(data = solar_frac(), 
            aes(x = year, 
                y = solar_frac)) +
-      geom_line(aes(color = state),
-                size = 1) +
+      geom_line(aes(color = state)) +
       theme_minimal() +
       labs(x = "Year", 
            y = "Solar as fraction of total generation", 
