@@ -147,7 +147,13 @@ solar_frac_state <- solar_by_state %>%
   clean_names() %>% 
   mutate(solar = replace_na(solar_thermal_and_photovoltaic, 0)) %>% 
   mutate(solar_frac = (solar / total)) %>%
-  mutate(year = as.numeric(year)) 
+  mutate(year = as.numeric(year))  %>% 
+  filter(year %in% c(2008:2018))
+
+# Get top 10 and US
+solar_top_10 <- solar_frac_state %>% 
+  filter(year == 2018) %>% 
+  filter(state %in% c("CA", "NV", "UT", "VT", "AZ", "NC", "NM", "MA", "ID", "CO", "United States"))
 
 # put back into longer format for ggplot
 # total_out_of_solar_longer <- total_out_of_solar_state %>% 
@@ -232,18 +238,13 @@ ui <- navbarPage("It's Always Sunny in California",
                  tabPanel("CA vs. other states",
                           h2("Solar statistics by state"),
                           sidebarLayout(
-                            sidebarPanel("Some text!",
-                                         checkboxGroupInput(inputId = "diamondclarity",
-                                                            "Choose some!",
-                                                            choices = c(levels(diamonds$clarity))
-                                         ),
-                                         selectizeInput(inputId = "state_selection",
+                            sidebarPanel(checkboxGroupInput(inputId = "state_selection",
                                                         "Choose a state:",
-                                                        choices = c(unique(solar_frac_state$state)),
-                                                        multiple = T,
-                                                        selected = "CA")
+                                                        choices = c(unique(solar_top_10$state)),
+                                                      #  multiple = T,
+                                                        selected = c("United States", "CA"))
                             ),
-                            mainPanel("Main panel text!",
+                            mainPanel("This graph displays how solar generation has grown over time as a fraction of total energy generation from all energy types. Select a state or region to see what fraction of its total energy generation comes from solar.",
                                       plotOutput(outputId = "solar_pct_plot")
                             )
                           )
@@ -348,7 +349,9 @@ server <- function(input, output){
                 size = 1) +
       theme_minimal() +
       labs(x = "Year", 
-           y = "Solar as fraction of total generation")
+           y = "Solar as fraction of total generation", 
+           color = "State/Region") +
+      scale_x_continuous(breaks = seq(2008, 2018, 2))
   })
   
 }
