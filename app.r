@@ -358,7 +358,8 @@ server <- function(input, output){
     ggplot(data = solar_frac(), 
            aes(x = year, 
                y = solar_frac)) +
-      geom_line(aes(color = state)) +
+      geom_line(aes(color = state), 
+                size = 1) +
       theme_minimal() +
       labs(x = "Year", 
            y = "Solar as fraction of total generation", 
