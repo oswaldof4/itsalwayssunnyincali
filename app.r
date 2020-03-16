@@ -220,9 +220,8 @@ ui <- navbarPage("It's Always Sunny in California",
                             selected time span. Darker shaded counties indicate more
                             solar capacity. Hover cursor over county to view exact capacity."),
                           sidebarLayout(
-                            sidebarPanel("Select year",
-                                         sliderInput(inputId = "yearselection",
-                                                     "(range of years)",
+                            sidebarPanel(sliderInput(inputId = "yearselection",
+                                                     "Select Year",
                                                      min = 2008,
                                                      max = 2018,
                                                      value = 2008,
